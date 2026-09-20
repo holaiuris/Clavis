@@ -276,7 +276,7 @@ function renderLogin() {
         <p>Entrá y mirá la agenda de hoy, sin llamados ni idas y vueltas.</p>
         <div class="login-testimonial">
           <span class="dot"></span>
-          <span>“Bajamos los ausentes a la mitad.” — Lucía, Rosario</span>
+          <span>Menos llamados, menos ausencias, más tiempo con tus clientes.</span>
         </div>
       </div>
       <div class="login-form-side">
