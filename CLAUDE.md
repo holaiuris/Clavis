@@ -103,6 +103,7 @@ turnos-app/
 ├── migracion_v7.sql       # vista peluqueros_publico (RLS pública ya no expone la tabla entera) + valida duración real del servicio en turnos_public_insert
 ├── migracion_v8.sql       # turnos.aviso_comercio_enviado — avisa por WhatsApp al comercio cuando entra una reserva nueva por el link público
 ├── migracion_v9.sql       # turnos.confirmacion_enviada — confirma por WhatsApp al cliente apenas reserva
+├── migracion_v10.sql      # obtener_turno_cliente/cancelar_turno_cliente — el cliente ve y cancela su turno desde reservar.html?turno=<id>
 ├── vercel.json            # rewrite /r/:slug -> /reservar.html?slug=:slug (link corto, ver DEPLOY.md)
 ├── index.html             # LANDING — página de marketing estática (no usa Supabase), es la raíz del sitio; "Entrar" y todos los CTA llevan a app.html
 ├── app.html               # shell de la app logueada (login → agenda)
@@ -130,8 +131,8 @@ Google Cloud + Supabase (ver `SETUP.md`).
 `huecos.sql` → `migracion_v3_enum.sql` (sola, transacción propia) →
 `migracion_v3.sql` → `migracion_v4.sql` → `migracion_v5.sql` →
 `migracion_v6.sql` → `migracion_v7.sql` → `migracion_v8.sql` →
-`migracion_v9.sql` (ver `SETUP.md`). Todas las migraciones son en
-caliente: no borran datos.
+`migracion_v9.sql` → `migracion_v10.sql` (ver `SETUP.md`). Todas las
+migraciones son en caliente: no borran datos.
 
 ## Cómo correrlo local
 ```bash
@@ -213,6 +214,24 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
       `asistio = true`) e historial completo. No hizo falta migración,
       la tabla `clientes` ya existía desde `migracion_v2.sql` pero no
       tenía una vista dedicada.
+- [x] Imprimir la agenda del día (`app.js` + `@media print` en
+      `style.css`): botón "Imprimir" en el toolbar de Agenda —
+      esconde sidebar/toolbar/filtros/huecos libres, deja solo la
+      lista de turnos del día con un encabezado con el nombre del
+      comercio y la fecha.
+- [x] El cliente cancela su propio turno desde un link
+      (`migracion_v10.sql`): `reservar.html?turno=<turno_id>` — el
+      UUID del turno hace de contraseña (nadie lo puede adivinar, solo
+      lo tiene quien reservó). Dos funciones `security definer`
+      (`obtener_turno_cliente`, `cancelar_turno_cliente`) en vez de
+      una policy pública de SELECT/DELETE sobre `turnos` — ninguna de
+      las dos permite listar turnos, solo operar sobre un id ya
+      conocido. Al cancelar, se avisa al comercio reusando
+      `notificaciones_pendientes` con un tipo nuevo (`cliente_cancelo`)
+      que `server/index.js` manda a `peluqueros.telefono` en vez de al
+      cliente. El link va incluido en el WhatsApp de confirmación
+      (`APP_URL`, ahora usada también por `index.js`, no solo
+      `payments.js`).
 - [x] Link corto para compartir (`migracion_v6.sql` + `vercel.json`):
       cada comercio elige un slug desde Horarios → "Marca del link
       público" (ej. `clavis.ar/r/peluqueria-lucia`) en vez del

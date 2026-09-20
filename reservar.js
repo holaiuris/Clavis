@@ -16,6 +16,8 @@ const urlParams = new URLSearchParams(location.search);
 const state = {
   comercioId: urlParams.get("c"),
   slug: urlParams.get("slug"),
+  turnoGestionId: urlParams.get("turno"),
+  turnoGestion: null,
   peluquero: null,
   profesionales: [],
   servicios: [],
@@ -67,7 +69,74 @@ function aplicarMarca(peluquero) {
   }
 }
 
+// reservar.html?turno=<id> — link para que el cliente gestione (vea/
+// cancele) SU turno, sin login. El id del turno hace de contraseña
+// (ver comentario en migracion_v10.sql) — no pasa por el flujo normal
+// de reservar (no necesita saber de qué comercio es).
+async function initGestionTurno() {
+  try {
+    const { data, error } = await db.rpc("obtener_turno_cliente", { p_turno_id: state.turnoGestionId });
+    if (error) throw error;
+    if (!data || !data.length) {
+      app.innerHTML = `<h1>No encontramos este turno</h1><p class="hint">Puede que ya lo hayas cancelado, o que el link esté mal copiado.</p>`;
+      return;
+    }
+    state.turnoGestion = data[0];
+    renderGestionTurno();
+  } catch (err) {
+    console.error(err);
+    app.innerHTML = `<h1>No se pudo cargar</h1><p class="error-msg">${escapeHtml(err.message || "Error inesperado")}</p>`;
+  }
+}
+
+function renderGestionTurno() {
+  const t = state.turnoGestion;
+  const fechaLarga = new Date(`${t.fecha}T${t.hora_inicio}`).toLocaleDateString("es-AR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  app.innerHTML = `
+    <h1>Tu turno en ${escapeHtml(t.comercio_nombre)}</h1>
+    <p class="hint">${escapeHtml(t.servicio_nombre || "")}${t.profesional_nombre ? " con " + escapeHtml(t.profesional_nombre) : ""}<br/>${escapeHtml(fechaLarga)} · ${hhmm(t.hora_inicio)} - ${hhmm(t.hora_fin)}</p>
+    <div class="actions">
+      <button type="button" class="danger" id="btn-cancelar-turno">Cancelar turno</button>
+    </div>
+  `;
+  document.getElementById("btn-cancelar-turno").addEventListener("click", renderConfirmarCancelacionTurno);
+}
+
+function renderConfirmarCancelacionTurno() {
+  const t = state.turnoGestion;
+  app.innerHTML = `
+    <h1>¿Cancelar tu turno?</h1>
+    <p class="hint">Esta acción no se puede deshacer. Le avisamos a ${escapeHtml(t.comercio_nombre)}.</p>
+    <div class="actions">
+      <button type="button" class="secondary" id="btn-volver-gestion">Volver</button>
+      <button type="button" class="danger" id="btn-confirmar-cancelacion">Sí, cancelar</button>
+    </div>
+    <div class="error-msg" id="gestion-error"></div>
+  `;
+  document.getElementById("btn-volver-gestion").addEventListener("click", renderGestionTurno);
+  document.getElementById("btn-confirmar-cancelacion").addEventListener("click", async (e) => {
+    const btn = e.target;
+    const errorEl = document.getElementById("gestion-error");
+    btn.disabled = true;
+    try {
+      const { error } = await db.rpc("cancelar_turno_cliente", { p_turno_id: state.turnoGestionId });
+      if (error) throw error;
+      app.innerHTML = `<h1>Listo, tu turno quedó cancelado</h1><p class="hint">Le avisamos a ${escapeHtml(t.comercio_nombre)}.</p>`;
+    } catch (err) {
+      console.error(err);
+      errorEl.textContent = err.message || "No se pudo cancelar";
+      btn.disabled = false;
+    }
+  });
+}
+
 async function init() {
+  if (state.turnoGestionId) return initGestionTurno();
+
   if (!state.comercioId && !state.slug) {
     app.innerHTML = `<h1>Link incompleto</h1><p class="hint">Este link no tiene el comercio identificado. Pedile al negocio que te pase el link completo.</p>`;
     return;

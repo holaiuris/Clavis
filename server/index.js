@@ -30,6 +30,9 @@ const qrcode = require("qrcode-terminal");
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const CHECK_INTERVAL_MINUTES = Number(process.env.CHECK_INTERVAL_MINUTES || 5);
+// La misma variable que usa payments.js — la confirmación de reserva
+// incluye un link para que el cliente gestione (cancele) su turno.
+const APP_URL = process.env.APP_URL || "http://localhost:8080";
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error("Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en server/.env — copiá .env.example y completalo.");
@@ -136,15 +139,20 @@ async function enviarRecordatoriosPendientes() {
   }
 }
 
-// Cuando el comercio cancela un turno desde la Agenda, app.js encola
-// una fila acá (ver migracion_v6.sql) en vez de mandar el WhatsApp
-// directo desde el navegador — mandar mensajes necesita esta sesión
-// de WhatsApp, que solo vive en este server.
+// notificaciones_pendientes tiene dos tipos, con destinatarios
+// distintos:
+//   - "cancelacion": el COMERCIO canceló desde la Agenda (app.js la
+//     encola, ver migracion_v6.sql) — se avisa al CLIENTE.
+//   - "cliente_cancelo": el CLIENTE canceló desde su link (la encola
+//     cancelar_turno_cliente(), ver migracion_v10.sql) — se avisa al
+//     COMERCIO (peluqueros.telefono), al revés que el otro caso.
+// Mandar el WhatsApp necesita esta sesión, que solo vive acá — por
+// eso no sale directo del navegador en ninguno de los dos casos.
 async function enviarAvisosCancelacion() {
   const { data: avisos, error } = await supabase
     .from("notificaciones_pendientes")
-    .select("id, cliente_nombre, cliente_telefono, fecha, hora_inicio, peluqueros(nombre)")
-    .eq("tipo", "cancelacion")
+    .select("id, tipo, cliente_nombre, cliente_telefono, fecha, hora_inicio, peluqueros(nombre, telefono)")
+    .in("tipo", ["cancelacion", "cliente_cancelo"])
     .eq("enviado", false);
 
   if (error) {
@@ -161,17 +169,29 @@ async function enviarAvisosCancelacion() {
       month: "long",
     });
 
-    const mensaje =
-      `Hola ${aviso.cliente_nombre || ""}! Te avisamos que ${nombreComercio} canceló tu turno ` +
-      `del ${fechaLarga} a las ${hora}. Cualquier consulta, respondé este mensaje.`;
+    const esAvisoAlComercio = aviso.tipo === "cliente_cancelo";
+    const telefonoDestino = esAvisoAlComercio ? aviso.peluqueros && aviso.peluqueros.telefono : aviso.cliente_telefono;
+
+    if (!telefonoDestino) {
+      // Comercio sin teléfono cargado (o, más raro, turno sin
+      // teléfono de cliente) — no hay a quién avisarle, no
+      // reintentamos en vano.
+      await supabase.from("notificaciones_pendientes").update({ enviado: true }).eq("id", aviso.id);
+      continue;
+    }
+
+    const mensaje = esAvisoAlComercio
+      ? `Tu cliente ${aviso.cliente_nombre || "alguien"} canceló su turno del ${fechaLarga} a las ${hora} desde su link.`
+      : `Hola ${aviso.cliente_nombre || ""}! Te avisamos que ${nombreComercio} canceló tu turno ` +
+        `del ${fechaLarga} a las ${hora}. Cualquier consulta, respondé este mensaje.`;
 
     try {
-      const chatId = normalizarTelefono(aviso.cliente_telefono);
+      const chatId = normalizarTelefono(telefonoDestino);
       await whatsapp.sendMessage(chatId, mensaje);
       await supabase.from("notificaciones_pendientes").update({ enviado: true }).eq("id", aviso.id);
-      console.log("Aviso de cancelación enviado a", aviso.cliente_nombre, "-", aviso.fecha, hora);
+      console.log(esAvisoAlComercio ? "Aviso de cancelación de cliente enviado al comercio" : "Aviso de cancelación enviado al cliente", "-", aviso.fecha, hora);
     } catch (err) {
-      console.error("No se pudo enviar aviso de cancelación a", aviso.cliente_telefono, ":", err.message);
+      console.error("No se pudo enviar aviso de cancelación a", telefonoDestino, ":", err.message);
     }
   }
 }
@@ -259,9 +279,11 @@ async function enviarConfirmacionesReserva() {
       month: "long",
     });
 
+    const linkGestion = `${APP_URL}/reservar.html?turno=${turno.id}`;
     const mensaje =
       `Hola ${turno.cliente_nombre || ""}! Tu turno de ${nombreServicio} en ${nombreComercio}` +
-      `${nombreProfesional ? " con " + nombreProfesional : ""} quedó confirmado para el ${fechaLarga} a las ${hora}.`;
+      `${nombreProfesional ? " con " + nombreProfesional : ""} quedó confirmado para el ${fechaLarga} a las ${hora}. ` +
+      `Si necesitás cancelarlo: ${linkGestion}`;
 
     try {
       const chatId = normalizarTelefono(turno.cliente_telefono);

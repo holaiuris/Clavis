@@ -864,3 +864,28 @@ button:disabled {
 .dia-row .dia-nombre { font-weight: 700; width: 90px; flex-shrink: 0; }
 .dia-row .dia-horario { color: var(--text-muted); font-size: 13px; }
 .dia-row .dia-cant { margin-left: auto; color: var(--text-muted); font-size: 12.5px; }
+
+/* ------------------------------------------------------------ */
+/* Imprimir agenda del día (botón "Imprimir" en la Agenda)       */
+/* ------------------------------------------------------------ */
+.agenda-print-header { display: none; }
+
+@media print {
+  .sidebar, .agenda-toolbar, .chip-row, .modal-backdrop, .content-header {
+    display: none !important;
+  }
+  .agenda-print-header {
+    display: block;
+    margin-bottom: 16px;
+  }
+  .agenda-print-header h2 { font-size: 18px; margin: 0; }
+  .content { padding: 0; }
+  .turno-card, .slot-empty {
+    box-shadow: none !important;
+    transform: none !important;
+    border: 1px solid #999 !important;
+    break-inside: avoid;
+  }
+  .turno-card:hover { border-color: #999 !important; }
+  button { display: none !important; }
+}

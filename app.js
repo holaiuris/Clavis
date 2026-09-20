@@ -674,7 +674,11 @@ function renderAgendaView() {
       </div>
       <input type="date" id="fecha-input" value="${state.fecha}" style="max-width:150px" />
       ${state.servicios.length ? `<select id="servicio-select">${serviciosOptions}</select>` : `<span class="hint">Agregá un servicio en Horarios</span>`}
+      <button type="button" class="secondary" id="btn-imprimir-agenda">Imprimir</button>
       <button type="button" id="btn-nuevo-turno">+ Nuevo turno</button>
+    </div>
+    <div class="agenda-print-header">
+      <h2>${escapeHtml(state.peluquero.nombre)} — Agenda del ${formatFechaLarga(state.fecha)}</h2>
     </div>
     <div class="chip-row">${profesionalChips}</div>
     <div class="chip-row">${estadoChips}</div>
@@ -698,6 +702,8 @@ function wireAgendaView() {
   };
   document.getElementById("fecha-prev").addEventListener("click", () => shiftFecha(-1));
   document.getElementById("fecha-next").addEventListener("click", () => shiftFecha(1));
+
+  document.getElementById("btn-imprimir-agenda").addEventListener("click", () => window.print());
 
   const servicioSelect = document.getElementById("servicio-select");
   if (servicioSelect) {

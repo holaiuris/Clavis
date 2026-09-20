@@ -56,6 +56,11 @@ consulta):**
     confirmarle al cliente por WhatsApp que su turno quedó cargado
     (antes de esto, lo único que salía era el recordatorio horas
     antes).
+13. Pegar el contenido completo de `migracion_v10.sql` → **Run**. Dos
+    funciones (`obtener_turno_cliente`, `cancelar_turno_cliente`) para
+    que el cliente pueda ver y cancelar su propio turno desde
+    `reservar.html?turno=<id>` — el link que ahora manda la
+    confirmación de WhatsApp.
 
 Si tu proyecto ya tenía datos cargados de una instalación anterior, no
 hace falta borrar nada: corré igual los pasos que falten sobre lo que
