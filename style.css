@@ -40,22 +40,27 @@ body {
 
 a { color: inherit; }
 
+/* Input estilo Uiverse.io, recoloreado: fondo plano + sombra sólida
+   en vez de borde — mismo lenguaje "offset shadow" que los botones y
+   el toggle. Al enfocar, la sombra pasa de --border a --accent en vez
+   de un glow difuso. */
 select, input[type="date"], input[type="text"], input[type="tel"], input[type="number"], input[type="time"], input[type="email"], input[type="password"] {
   width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
+  border: none;
+  border-radius: 1rem;
+  padding: 12px 14px;
   font-size: 14px;
-  background: var(--panel);
+  background: var(--panel-2);
   color: var(--text);
   font-family: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 0 var(--border);
+  transition: box-shadow 0.15s ease;
 }
+select { cursor: pointer; }
 
 select:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="tel"]:focus, input[type="number"]:focus, input[type="time"]:focus, input[type="email"]:focus, input[type="password"]:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(110, 171, 199, 0.18);
+  box-shadow: 0 4px 0 var(--accent);
 }
 
 /* Botón estilo Uiverse.io (by cssbuttons-io), recoloreado con la
@@ -124,20 +129,29 @@ button:disabled {
   filter: none;
 }
 
-/* Pestañas/filtros/chips: son <button> pero no CTAs — vuelven al look
-   plano de antes, sin escalón ni efecto de hundirse. */
+/* Pestañas/filtros/chips/slots vacíos: son <button> pero no CTAs —
+   vuelven al look plano de antes, sin escalón ni efecto de hundirse.
+   El :active necesita :not(:disabled) para pesar más que la regla
+   base y no saltar de posición al clickear. */
 .nav-item,
 .chip,
 .hueco-btn,
-.date-nav button {
+.date-nav button,
+.slot-empty {
   border: none;
 }
 .nav-item::after,
 .chip::after,
 .hueco-btn::after,
-.date-nav button::after {
+.date-nav button::after,
+.slot-empty::after {
   content: none;
 }
+.nav-item:active:not(:disabled) { padding-bottom: 9px; }
+.chip:active:not(:disabled) { padding-bottom: 7px; }
+.hueco-btn:active:not(:disabled) { padding-bottom: 8px; }
+.date-nav button:active:not(:disabled) { padding-bottom: 4px; }
+.slot-empty:active:not(:disabled) { padding-bottom: 12px; }
 
 .hint {
   color: var(--text-muted);
@@ -558,7 +572,6 @@ button:disabled {
   flex: 1;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--ocupado);
   border-radius: 12px;
   padding: 12px 16px;
   display: flex;
@@ -567,10 +580,10 @@ button:disabled {
   gap: 12px;
   cursor: pointer;
   box-shadow: var(--shadow);
-  transition: box-shadow 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
-.turno-card:hover { box-shadow: 0 2px 10px rgba(32, 28, 43, 0.14); }
-.turno-card[data-estado="bloqueado"] { border-left-color: var(--bloqueado); }
+.turno-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -10px rgba(36, 62, 75, 0.25); border-color: var(--accent); }
+.turno-card[data-estado="bloqueado"] { background: var(--panel-2); }
 
 .turno-card .turno-nombre { font-weight: 700; font-size: 15px; }
 .turno-card .turno-sub { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
