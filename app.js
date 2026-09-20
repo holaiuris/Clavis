@@ -637,10 +637,22 @@ function renderAgendaView() {
         const t = f.turno;
         const servicio = state.servicios.find((s) => s.id === t.servicio_id);
         let badge = "";
+        // data-estado del turno-card usa el estado VISUAL (el mismo que
+        // el badge), no el estado crudo de la base — style.css colorea
+        // la tarjeta por confirmado/atendido/ausente/bloqueado, y
+        // "ocupado" no dice nada de eso por sí solo.
+        let estadoVisual = t.estado;
         if (t.estado === "ocupado") {
-          if (t.asistio === true) badge = `<span class="status-badge atendido">Atendido</span>`;
-          else if (t.asistio === false) badge = `<span class="status-badge ausente">Ausente</span>`;
-          else badge = `<span class="status-badge confirmado">Confirmado</span>`;
+          if (t.asistio === true) {
+            badge = `<span class="status-badge atendido">Atendido</span>`;
+            estadoVisual = "atendido";
+          } else if (t.asistio === false) {
+            badge = `<span class="status-badge ausente">Ausente</span>`;
+            estadoVisual = "ausente";
+          } else {
+            badge = `<span class="status-badge confirmado">Confirmado</span>`;
+            estadoVisual = "confirmado";
+          }
         }
         const nombre = t.estado === "ocupado" ? escapeHtml(t.cliente_nombre || "Sin nombre") : "Bloqueado";
         const sub =
@@ -651,7 +663,7 @@ function renderAgendaView() {
         return `
           <div class="agenda-row">
             <div class="row-hora">${hhmm(t.hora_inicio)}</div>
-            <div class="turno-card" data-estado="${t.estado}" data-turno-id="${t.id}">
+            <div class="turno-card" data-estado="${estadoVisual}" data-turno-id="${t.id}">
               <div>
                 <span class="turno-nombre">${nombre}</span>${badge}
                 <div class="turno-sub">${sub}</div>

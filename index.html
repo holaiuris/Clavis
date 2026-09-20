@@ -3,303 +3,449 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Clavis — Gestión de turnos</title>
+<title>Clavis — Tu agenda se llena sola</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --bg: #ffffff;
-    --panel: #ffffff;
-    --panel-2: #f4f8f9;
-    --border: #e1e8ea;
-    --text: #243e4b;
-    --text-muted: #607580;
-    --accent: #6eabc7;
-    --detail: #ffe26d;
-    --ink: #243e4b;
-    --violet: #243e4b;
-    --shadow: 0 1px 2px rgba(36, 62, 75, 0.05), 0 8px 24px -12px rgba(36, 62, 75, 0.18);
-  }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #ffffff; color: #243E4B; font-family: "Poppins", system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-  }
-  a { text-decoration: none; color: inherit; }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
-
-  nav.topnav {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 18px 0;
-  }
-  .pillnav {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 8px 10px;
-    display: flex;
-    gap: 4px;
-    box-shadow: var(--shadow);
-  }
-  .pillnav .brand { padding: 8px 14px; font-weight: 800; letter-spacing: 0.08em; font-size: 13px; color: var(--text-muted); }
-  .pillnav a.item { padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px; color: var(--text); }
-  .pillnav a.item.active { background: var(--ink); color: #fff; }
-
-  header.hero {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 0 10px;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .brand-logo { display: flex; align-items: center; }
-  .brand-logo img { height: 42px; width: auto; }
-  .hero-links { display: flex; align-items: center; gap: 26px; font-weight: 600; font-size: 15px; color: var(--text-muted); }
-  /* Mismo botón que el resto de la app (ver style.css): un escalón
-     sólido más oscuro (::after) se asoma debajo y desaparece al
-     hacer click, simulando que el botón se hunde. */
-  .btn {
-    display: inline-block;
-    border: solid transparent;
-    border-width: 0 0 4px;
-    border-radius: 16px;
-    box-sizing: border-box;
-    padding: 12px 22px;
-    font-weight: 700;
-    font-size: 15px;
-    cursor: pointer;
-    position: relative;
-    background-color: var(--accent);
-    color: #fff;
-    transition: filter 0.15s ease, border-width 0.1s ease, padding-bottom 0.1s ease;
-  }
-  .btn::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: -4px;
-    border-radius: 16px;
-    background-color: color-mix(in srgb, var(--accent) 72%, #243e4b);
-    z-index: -1;
-  }
-  .btn:hover { filter: brightness(1.06); }
-  .btn:active { border-width: 0 0 0; padding-bottom: 16px; }
-  .btn-dark { background-color: var(--ink); color: #fff; }
-  /* --ink ya es el tono más oscuro de la paleta — el escalón de este
-     usa un navy fijo un poco más profundo en vez de negro. */
-  .btn-dark::after { background-color: #16262e; }
-  .btn-accent { background-color: var(--accent); color: #fff; }
-  .btn-outline { background-color: var(--panel); color: var(--text); }
-  .btn-outline::after { background-color: var(--border); }
-  .btn-outline-light { background: transparent; color: #fff; border-color: rgba(255,255,255,0.5); border-width: 1px; }
-  .btn-outline-light::after { content: none; }
-  /* Botones blancos sobre fondo oscuro (plan destacado, banner de
-     trial): el escalón oscuro de --accent no se leería ahí — un gris
-     con tinte navy en su lugar, que sí se distingue contra el fondo. */
-  .plan.featured .btn::after,
-  .trial-banner .btn::after {
-    background-color: color-mix(in srgb, white 80%, #243e4b);
-  }
-
-  .eyebrow { color: var(--accent); font-weight: 700; font-size: 12.5px; letter-spacing: 0.06em; margin-bottom: 14px; }
-  .eyebrow::before { content: "● "; }
-  h1.hero-title { font-size: 52px; line-height: 1.05; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 18px; max-width: 640px; }
-  .hero-sub { font-size: 17px; color: var(--text-muted); max-width: 480px; margin: 0 0 28px; }
-  .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 30px; }
-  .hero-note { font-size: 14px; color: var(--text-muted); margin: 0 0 40px; }
-
-  section { padding: 44px 0; }
-  h2.section-title { font-size: 32px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 32px; max-width: 560px; }
-
-  .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  @media (max-width: 800px) { .cards3 { grid-template-columns: 1fr; } }
-  .feature-card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 26px; box-shadow: var(--shadow); transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
-  .feature-card:hover { transform: translateY(-6px); box-shadow: 0 16px 28px -10px rgba(36, 62, 75, 0.28); border-color: var(--accent); }
-  .feature-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--panel-2); display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 18px; }
-  .feature-card h3 { font-size: 19px; margin: 0 0 8px; }
-  .feature-card p { color: var(--text-muted); font-size: 14.5px; margin: 0; line-height: 1.5; }
-
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
-  @media (max-width: 800px) { .steps { grid-template-columns: 1fr; } }
-  .step { padding: 20px 24px 20px 0; border-top: 1px solid var(--border); }
-  .step .n { color: var(--accent); font-weight: 800; font-size: 14px; margin-bottom: 10px; }
-  .step h3 { font-size: 19px; margin: 0 0 8px; }
-  .step p { color: var(--text-muted); font-size: 14.5px; margin: 0; line-height: 1.5; }
-
-  .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  @media (max-width: 800px) { .plans { grid-template-columns: 1fr; } }
-  .plan { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 26px; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: transform 0.2s ease, box-shadow 0.2s ease; }
-  .plan:hover { transform: translateY(-6px); box-shadow: 0 16px 28px -10px rgba(36, 62, 75, 0.28); }
-  .plan.featured { background: var(--ink); color: #fff; border-color: var(--ink); }
-  .plan .tag { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: var(--text-muted); text-transform: uppercase; }
-  .plan.featured .tag { color: rgba(255,255,255,0.65); }
-  .plan .price { font-size: 34px; font-weight: 800; margin: 8px 0 4px; }
-  .plan .price span { font-size: 14px; font-weight: 600; color: var(--text-muted); }
-  .plan.featured .price span { color: rgba(255,255,255,0.65); }
-  .plan .desc { font-size: 13.5px; color: var(--text-muted); margin-bottom: 18px; }
-  .plan.featured .desc { color: rgba(255,255,255,0.75); }
-  .plan ul { list-style: none; padding: 0; margin: 0 0 22px; display: flex; flex-direction: column; gap: 10px; }
-  .plan li { font-size: 14px; padding-left: 16px; position: relative; }
-  .plan li::before { content: "•"; color: var(--accent); position: absolute; left: 0; }
-  .plan .btn { margin-top: auto; text-align: center; }
-
-  .trial-banner {
-    background: var(--violet);
-    color: #fff;
-    border-radius: 22px;
-    padding: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-  .trial-banner h2 { font-size: 28px; margin: 0 0 10px; font-weight: 800; max-width: 380px; }
-  .trial-banner p { margin: 0 0 20px; opacity: 0.9; max-width: 380px; }
-
-  footer { border-top: 1px solid var(--border); padding: 26px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  footer .flinks { display: flex; gap: 22px; font-size: 14px; color: var(--text-muted); font-weight: 500; }
-  footer .copy { font-size: 13px; color: var(--text-muted); }
+  a { color: #243E4B; text-decoration: none; }
+  a:hover { color: #6EABC7; }
+  @keyframes clavis-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @keyframes clavis-float { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-14px) rotate(3deg); } }
+  @keyframes clavis-pulse { 0%,100% { opacity: .35; transform: scale(1); } 50% { opacity: .9; transform: scale(1.35); } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
+<div id="cv-progress" style="position:fixed;top:0;left:0;height:3px;width:0%;background:#FFE26D;z-index:60;transition:width .12s linear"></div>
 
-<div class="wrap">
-  <header class="hero">
-    <div class="brand-logo"><img src="assets/logo-clavis.svg" alt="Clavis" /></div>
-    <div class="hero-links">
-      <a href="#producto">Producto</a>
-      <a href="#precios">Precios</a>
-      <a href="#">Ayuda</a>
+<nav id="cv-nav" style="position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-bottom:1px solid #EAF0F2;transition:box-shadow .25s ease,border-color .25s ease">
+  <div style="max-width:1140px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:20px">
+    <a href="#top" style="display:flex;align-items:center"><img src="assets/logo-clavis.svg" alt="Clavis" style="height:34px;width:auto;display:block" /></a>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:26px;font-size:14.5px;font-weight:500">
+      <a href="#producto" style="display:none">Producto</a>
+      <a href="#como" id="cv-nav-1">Cómo funciona</a>
+      <a href="#precios" id="cv-nav-2">Precios</a>
+      <a href="#" id="cv-nav-3">Ayuda</a>
     </div>
-    <a href="app.html" class="btn btn-dark">Entrar</a>
-  </header>
+    <a href="app.html" style="background:#243E4B;color:#fff;font-weight:600;font-size:14.5px;padding:11px 20px;border-radius:14px;box-shadow:0 4px 0 #16262E;transition:transform .12s ease,box-shadow .12s ease">Entrar</a>
+  </div>
+</nav>
 
-  <section id="producto" style="padding-top:12px;">
-    <p class="eyebrow">SIN APPS QUE NADIE DESCARGA</p>
-    <h1 class="hero-title">Tu agenda se llena sola. Vos atendés.</h1>
-    <p class="hero-sub">Clavis toma los turnos, avisa por WhatsApp y frena los ausentes. Tu comercio abre el link, tu cliente elige el horario.</p>
-    <div class="hero-ctas">
-      <a href="app.html" class="btn btn-accent">Empezar gratis</a>
-      <a href="app.html" class="btn btn-outline">Ver la agenda</a>
+<header id="top" style="position:relative;overflow:hidden">
+  <div id="cv-blob-1" style="position:absolute;top:-90px;right:-60px;width:380px;height:380px;border-radius:50%;background:#EAF4F8;z-index:0"></div>
+  <div id="cv-blob-2" style="position:absolute;top:320px;left:-120px;width:240px;height:240px;border-radius:50%;background:#FFF7D4;z-index:0"></div>
+  <div style="position:relative;z-index:1;max-width:1140px;margin:0 auto;padding:64px 24px 72px;display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:56px;align-items:center">
+    <div>
+      <div data-reveal="1" style="display:inline-flex;align-items:center;gap:9px;border:1px solid #DCE7EB;border-radius:999px;padding:7px 15px 7px 11px;font-size:12.5px;font-weight:600;letter-spacing:.02em;margin-bottom:26px">
+        <span style="width:7px;height:7px;border-radius:50%;background:#6EABC7;display:block;animation:clavis-pulse 2.2s ease-in-out infinite"></span>
+        Sin apps que nadie descarga
+      </div>
+      <h1 data-reveal="2" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(40px,5.2vw,64px);line-height:1.02;letter-spacing:-.035em;margin:0 0 22px;text-wrap:balance">
+        Tu agenda se
+        <span style="position:relative;display:inline-block;white-space:nowrap">
+          <span id="cv-swash" style="position:absolute;left:-6px;right:-6px;bottom:6px;height:.42em;background:#FFE26D;border-radius:4px;transform:scaleX(0);transform-origin:left;transition:transform .7s cubic-bezier(.22,1,.36,1) .35s;z-index:-1"></span>
+          llena sola.
+        </span>
+        <br />Vos atendés.
+      </h1>
+      <p data-reveal="3" style="font-size:18px;line-height:1.55;color:#5B7482;max-width:440px;margin:0 0 30px">Clavis toma los turnos, avisa por WhatsApp y frena los ausentes. Vos compartís un link; tu cliente elige el horario.</p>
+      <div data-reveal="4" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+        <a href="app.html" style="background:#6EABC7;color:#243E4B;font-weight:700;font-size:15.5px;padding:15px 26px;border-radius:16px;box-shadow:0 5px 0 #4A8AA8;transition:transform .12s ease,box-shadow .12s ease">Empezar gratis</a>
+        <a href="app.html" style="background:#fff;color:#243E4B;font-weight:600;font-size:15.5px;padding:15px 26px;border-radius:16px;border:1px solid #DCE7EB;box-shadow:0 5px 0 #EAF0F2;transition:transform .12s ease,box-shadow .12s ease">Ver la agenda en vivo</a>
+      </div>
+      <p data-reveal="5" style="font-size:13.5px;color:#5B7482;margin:0">14 días gratis · sin tarjeta · cancelás cuando quieras</p>
     </div>
-    <p class="hero-note">Gratis 14 días, sin tarjeta. Cancelás cuando quieras.</p>
-  </section>
 
-  <section>
-    <h2 class="section-title">Tres cosas que te devuelven la semana</h2>
-    <p style="margin-top:-22px;color:var(--text-muted);max-width:520px;">Nada de configurar durante horas. Clavis viene resuelto y lo ajustás en cinco minutos.</p>
-    <div class="cards3" style="margin-top:24px;">
-      <div class="feature-card">
-        <div class="feature-icon">⏱</div>
-        <h3>Reservas sin llamados</h3>
-        <p>Compartís tu link y tus clientes eligen entre tus horarios reales. Cero superposiciones.</p>
+    <div data-reveal="3" style="position:relative">
+      <div id="cv-tilt" style="background:#fff;border:1px solid #DCE7EB;border-radius:24px;box-shadow:14px 14px 0 #243E4B;padding:20px;transition:transform .35s cubic-bezier(.22,1,.36,1)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <div style="font-size:11.5px;font-weight:600;letter-spacing:.09em;color:#5B7482">HOY · MARTES 14</div>
+            <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em">Agenda del día</div>
+          </div>
+          <div style="display:flex;gap:5px">
+            <span style="width:9px;height:9px;border-radius:50%;background:#FFE26D;display:block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#6EABC7;display:block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#243E4B;display:block"></span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div data-slot="0" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:#F7FAFB;border:1px solid transparent;transition:all .35s ease">
+            <span style="font-size:13px;font-weight:600;color:#5B7482;width:44px">09:00</span>
+            <span style="flex:1;font-size:14.5px;font-weight:600">Corte + barba · Nahuel</span>
+            <span data-tick="0" style="font-size:11px;font-weight:700;color:#3F8F6B;opacity:0;transition:opacity .3s ease">✓</span>
+          </div>
+          <div data-slot="1" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:#F7FAFB;border:1px solid transparent;transition:all .35s ease">
+            <span style="font-size:13px;font-weight:600;color:#5B7482;width:44px">10:30</span>
+            <span style="flex:1;font-size:14.5px;font-weight:600">Color · Malena R.</span>
+            <span data-tick="1" style="font-size:11px;font-weight:700;color:#3F8F6B;opacity:0;transition:opacity .3s ease">✓</span>
+          </div>
+          <div data-slot="2" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:#F7FAFB;border:1px solid transparent;transition:all .35s ease">
+            <span style="font-size:13px;font-weight:600;color:#5B7482;width:44px">12:00</span>
+            <span style="flex:1;font-size:14.5px;font-weight:600">Manicura · Sofi D.</span>
+            <span data-tick="2" style="font-size:11px;font-weight:700;color:#3F8F6B;opacity:0;transition:opacity .3s ease">✓</span>
+          </div>
+          <div data-slot="3" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:#F7FAFB;border:1px solid transparent;transition:all .35s ease">
+            <span style="font-size:13px;font-weight:600;color:#5B7482;width:44px">15:30</span>
+            <span style="flex:1;font-size:14.5px;font-weight:600">Limpieza facial · Tomás</span>
+            <span data-tick="3" style="font-size:11px;font-weight:700;color:#3F8F6B;opacity:0;transition:opacity .3s ease">✓</span>
+          </div>
+        </div>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px dashed #E1E8EA;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;color:#5B7482;font-weight:500">Ocupación de hoy</span>
+          <span style="font-size:13px;font-weight:700"><span id="cv-occ">0</span>%</span>
+        </div>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">✳</div>
-        <h3>Recordatorios que funcionan</h3>
-        <p>Aviso automático por WhatsApp y mail. Confirman con un toque y vos ves todo al instante.</p>
+      <div id="cv-wa" style="position:absolute;right:-14px;bottom:-26px;background:#243E4B;color:#fff;border-radius:16px;padding:13px 17px;font-size:13px;font-weight:600;box-shadow:0 12px 26px -10px rgba(36,62,75,.5);opacity:0;transform:translateY(12px);transition:all .45s cubic-bezier(.22,1,.36,1)">
+        <span style="color:#FFE26D">●</span> Malena confirmó por WhatsApp
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">◆</div>
-        <h3>Números para decidir</h3>
-        <p>Qué servicio rinde, qué horario se vacía y quién no vuelve. Sin planillas.</p>
+      <div style="position:absolute;left:-26px;top:-22px;width:54px;height:54px;border-radius:16px;background:#FFE26D;animation:clavis-float 6s ease-in-out infinite;z-index:-1"></div>
+    </div>
+  </div>
+</header>
+
+<div style="background:#243E4B;color:#fff;padding:16px 0;overflow:hidden;white-space:nowrap">
+  <div style="display:inline-flex;gap:0;animation:clavis-marquee 34s linear infinite;will-change:transform">
+    <span style="display:inline-flex;gap:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;letter-spacing:.01em">
+      <span style="padding:0 26px">Peluquerías</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Barberías</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Estética</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Consultorios</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Tatuajes</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Kinesiología</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Veterinarias</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Talleres</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+    </span>
+    <span style="display:inline-flex;gap:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;letter-spacing:.01em" aria-hidden="true">
+      <span style="padding:0 26px">Peluquerías</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Barberías</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Estética</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Consultorios</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Tatuajes</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Kinesiología</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Veterinarias</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+      <span style="padding:0 26px">Talleres</span><span style="padding:0 26px;color:#FFE26D">✳</span>
+    </span>
+  </div>
+</div>
+
+<section id="producto" style="max-width:1140px;margin:0 auto;padding:96px 24px 40px">
+  <div data-reveal="1" style="display:flex;align-items:flex-end;justify-content:space-between;gap:32px;flex-wrap:wrap;margin-bottom:38px">
+    <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.03em;line-height:1.06;margin:0;max-width:520px">Tres cosas que te devuelven la semana</h2>
+    <p style="font-size:16px;color:#5B7482;max-width:340px;margin:0">Nada de configurar durante horas. Clavis viene resuelto y lo ajustás en cinco minutos.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
+    <div data-reveal="1" data-card="1" style="background:#fff;border:1px solid #DCE7EB;border-radius:22px;padding:28px;box-shadow:8px 8px 0 #EAF4F8;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
+      <div style="width:46px;height:46px;border-radius:14px;background:#6EABC7;color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;margin-bottom:20px">⏱</div>
+      <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em;margin:0 0 9px">Reservas sin llamados</h3>
+      <p style="font-size:15px;line-height:1.55;color:#5B7482;margin:0">Compartís tu link y tus clientes eligen entre tus horarios reales. Cero superposiciones, cero mensajes a las once de la noche.</p>
+    </div>
+    <div data-reveal="2" data-card="1" style="background:#fff;border:1px solid #DCE7EB;border-radius:22px;padding:28px;box-shadow:8px 8px 0 #FFF3C2;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
+      <div style="width:46px;height:46px;border-radius:14px;background:#FFE26D;color:#243E4B;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;margin-bottom:20px">✳</div>
+      <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em;margin:0 0 9px">Recordatorios que funcionan</h3>
+      <p style="font-size:15px;line-height:1.55;color:#5B7482;margin:0">Aviso automático por WhatsApp y mail. Confirman con un toque y el que no viene libera el horario solo.</p>
+    </div>
+    <div data-reveal="3" data-card="1" style="background:#fff;border:1px solid #DCE7EB;border-radius:22px;padding:28px;box-shadow:8px 8px 0 #E4EAED;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
+      <div style="width:46px;height:46px;border-radius:14px;background:#243E4B;color:#FFE26D;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;margin-bottom:20px">◆</div>
+      <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em;margin:0 0 9px">Números para decidir</h3>
+      <p style="font-size:15px;line-height:1.55;color:#5B7482;margin:0">Qué servicio rinde, qué horario se vacía y quién no vuelve. Sin planillas ni cuentas a mano.</p>
+    </div>
+  </div>
+</section>
+
+<section id="como" style="max-width:1140px;margin:0 auto;padding:72px 24px 40px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:48px;align-items:start">
+    <div style="position:sticky;top:110px">
+      <div style="font-size:12.5px;font-weight:700;letter-spacing:.09em;color:#6EABC7;margin-bottom:14px">CÓMO FUNCIONA</div>
+      <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.03em;line-height:1.06;margin:0 0 18px">De cero a turnos en una tarde</h2>
+      <p style="font-size:16px;color:#5B7482;margin:0 0 26px;max-width:340px">Tres pasos. Sin instalar nada, sin capacitación, sin planilla de respaldo.</p>
+      <div style="height:5px;background:#EAF0F2;border-radius:99px;overflow:hidden;max-width:300px">
+        <div id="cv-track" style="height:100%;width:0%;background:#6EABC7;border-radius:99px;transition:width .3s ease"></div>
       </div>
     </div>
-  </section>
-
-  <section>
-    <h2 class="section-title">Cómo funciona</h2>
-    <div class="steps">
-      <div class="step">
-        <div class="n">1</div>
-        <h3>Cargá tus horarios</h3>
-        <p>Días, duración y servicios. Cinco minutos y queda.</p>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div data-step="0" data-reveal="1" style="background:#F7FAFB;border:1px solid #E6EEF1;border-radius:22px;padding:30px;display:flex;gap:22px;align-items:flex-start;transition:background .3s ease,border-color .3s ease">
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;line-height:1;color:#C9DBE3;letter-spacing:-.04em">01</div>
+        <div>
+          <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;margin:0 0 8px">Cargá tus horarios</h3>
+          <p style="font-size:15px;line-height:1.55;color:#5B7482;margin:0 0 16px">Días, duración y servicios. Cinco minutos y queda para siempre.</p>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <span style="background:#fff;border:1px solid #DCE7EB;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">Lun a Sáb</span>
+            <span style="background:#fff;border:1px solid #DCE7EB;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">30 min</span>
+            <span style="background:#FFE26D;border:1px solid #FFE26D;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">+ Feriados cerrado</span>
+          </div>
+        </div>
       </div>
-      <div class="step">
-        <div class="n">2</div>
-        <h3>Compartí tu link</h3>
-        <p>En Instagram, WhatsApp o la puerta del local con QR.</p>
+      <div data-step="1" data-reveal="1" style="background:#F7FAFB;border:1px solid #E6EEF1;border-radius:22px;padding:30px;display:flex;gap:22px;align-items:flex-start;transition:background .3s ease,border-color .3s ease">
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;line-height:1;color:#C9DBE3;letter-spacing:-.04em">02</div>
+        <div>
+          <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;margin:0 0 8px">Compartí tu link</h3>
+          <p style="font-size:15px;line-height:1.55;color:#5B7482;margin:0 0 16px">En Instagram, en WhatsApp o con un QR pegado en la puerta del local.</p>
+          <div style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid #DCE7EB;border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:600">
+            <span style="color:#5B7482">clavis.app/</span>tu-local
+            <span style="background:#243E4B;color:#fff;border-radius:8px;padding:4px 10px;font-size:11.5px">Copiar</span>
+          </div>
+        </div>
       </div>
-      <div class="step">
-        <div class="n">3</div>
-        <h3>Atendé tranquilo</h3>
-        <p>Clavis confirma, recuerda y reacomoda cuando alguien cae.</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="precios">
-    <h2 class="section-title">Precios simples, sin sorpresas</h2>
-    <div class="plans">
-      <div class="plan">
-        <div class="tag">Arranque</div>
-        <div class="price">$0<span>/mes</span></div>
-        <div class="desc">Hasta 40 turnos por mes.</div>
-        <ul>
-          <li>Link de reservas</li>
-          <li>Agenda del día</li>
-          <li>1 profesional</li>
-        </ul>
-        <a href="app.html" class="btn btn-outline">Empezar gratis</a>
-      </div>
-      <div class="plan featured">
-        <div class="tag">Comercio · el elegido</div>
-        <div class="price">$14.900<span>/mes</span></div>
-        <div class="desc">Turnos ilimitados y equipo completo.</div>
-        <ul>
-          <li>Todo lo de Arranque</li>
-          <li>Recordatorios WhatsApp</li>
-          <li>Hasta 8 profesionales</li>
-          <li>Métricas y reportes</li>
-        </ul>
-        <a href="app.html" class="btn" style="background:#fff;color:var(--ink);">Probar 14 días</a>
-      </div>
-      <div class="plan">
-        <div class="tag">Cadena</div>
-        <div class="price">$34.900<span>/mes</span></div>
-        <div class="desc">Varias sucursales, una sola vista.</div>
-        <ul>
-          <li>Todo lo de Comercio</li>
-          <li>Sucursales ilimitadas</li>
-          <li>Señas y cobros online</li>
-          <li>Soporte prioritario</li>
-        </ul>
-        <a href="app.html" class="btn btn-outline">Hablar con ventas</a>
+      <div data-step="2" data-reveal="1" style="background:#F7FAFB;border:1px solid #E6EEF1;border-radius:22px;padding:30px;display:flex;gap:22px;align-items:flex-start;transition:background .3s ease,border-color .3s ease">
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;line-height:1;color:#C9DBE3;letter-spacing:-.04em">03</div>
+        <div>
+          <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;margin:0 0 8px">Atendé tranquilo</h3>
+          <p style="font-size:15px;line-height:1.55;color:#5B7482;margin:0 0 16px">Clavis confirma, recuerda y reacomoda la agenda cuando alguien se cae.</p>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <span style="background:#fff;border:1px solid #DCE7EB;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">Recordatorio -24 h</span>
+            <span style="background:#fff;border:1px solid #DCE7EB;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">Lista de espera</span>
+          </div>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section>
-    <div class="trial-banner">
-      <div>
-        <h2>Probalo esta semana. Sin tarjeta.</h2>
-        <p>14 días completos. Si no te ordena la agenda, te vas y listo.</p>
-        <a href="app.html" class="btn" style="background:#fff;color:var(--violet);">Crear mi cuenta</a>
-      </div>
+
+<section id="precios" style="max-width:1140px;margin:0 auto;padding:60px 24px 40px">
+  <div data-reveal="1" style="text-align:center;margin-bottom:38px">
+    <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.03em;margin:0 0 12px">Precios simples, sin sorpresas</h2>
+    <p style="font-size:16px;color:#5B7482;margin:0">Empezá gratis. Pasás de plan sólo cuando tu agenda lo pide.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;align-items:stretch">
+    <div data-reveal="1" data-card="1" style="background:#fff;border:1px solid #DCE7EB;border-radius:24px;padding:30px;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.09em;color:#5B7482;text-transform:uppercase">Arranque</div>
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.035em;margin:10px 0 4px">$0<span style="font-family:'Poppins',sans-serif;font-size:14px;font-weight:500;color:#5B7482">/mes</span></div>
+      <p style="font-size:14px;color:#5B7482;margin:0 0 20px">Hasta 40 turnos por mes.</p>
+      <ul style="list-style:none;padding:0;margin:0 0 24px;display:flex;flex-direction:column;gap:11px;font-size:14.5px">
+        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>Link de reservas</li>
+        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>Agenda del día</li>
+        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>1 profesional</li>
+      </ul>
+      <a href="app.html" style="margin-top:auto;text-align:center;background:#fff;border:1px solid #DCE7EB;color:#243E4B;font-weight:600;font-size:15px;padding:13px;border-radius:14px;box-shadow:0 4px 0 #EAF0F2">Empezar gratis</a>
     </div>
-  </section>
+    <div data-reveal="2" data-card="1" style="background:#243E4B;color:#fff;border:1px solid #243E4B;border-radius:24px;padding:30px;display:flex;flex-direction:column;position:relative;box-shadow:0 22px 40px -22px rgba(36,62,75,.6);transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
+      <span style="position:absolute;top:-13px;left:30px;background:#FFE26D;color:#243E4B;font-size:11.5px;font-weight:700;letter-spacing:.06em;padding:6px 13px;border-radius:99px">EL ELEGIDO</span>
+      <div style="font-size:12px;font-weight:700;letter-spacing:.09em;color:#9FBAC7;text-transform:uppercase">Comercio</div>
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.035em;margin:10px 0 4px">$14.900<span style="font-family:'Poppins',sans-serif;font-size:14px;font-weight:500;color:#9FBAC7">/mes</span></div>
+      <p style="font-size:14px;color:#B9CCD5;margin:0 0 20px">Turnos ilimitados y equipo completo.</p>
+      <ul style="list-style:none;padding:0;margin:0 0 24px;display:flex;flex-direction:column;gap:11px;font-size:14.5px">
+        <li style="display:flex;gap:10px"><span style="color:#FFE26D;font-weight:700">✓</span>Todo lo de Arranque</li>
+        <li style="display:flex;gap:10px"><span style="color:#FFE26D;font-weight:700">✓</span>Recordatorios por WhatsApp</li>
+        <li style="display:flex;gap:10px"><span style="color:#FFE26D;font-weight:700">✓</span>Hasta 8 profesionales</li>
+        <li style="display:flex;gap:10px"><span style="color:#FFE26D;font-weight:700">✓</span>Métricas y reportes</li>
+      </ul>
+      <a href="app.html" style="margin-top:auto;text-align:center;background:#FFE26D;color:#243E4B;font-weight:700;font-size:15px;padding:13px;border-radius:14px;box-shadow:0 4px 0 #D9BE4A;transition:transform .12s ease,box-shadow .12s ease">Probar 14 días</a>
+    </div>
+    <div data-reveal="3" data-card="1" style="background:#fff;border:1px solid #DCE7EB;border-radius:24px;padding:30px;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.09em;color:#5B7482;text-transform:uppercase">Cadena</div>
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.035em;margin:10px 0 4px">$34.900<span style="font-family:'Poppins',sans-serif;font-size:14px;font-weight:500;color:#5B7482">/mes</span></div>
+      <p style="font-size:14px;color:#5B7482;margin:0 0 20px">Varias sucursales, una sola vista.</p>
+      <ul style="list-style:none;padding:0;margin:0 0 24px;display:flex;flex-direction:column;gap:11px;font-size:14.5px">
+        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>Todo lo de Comercio</li>
+        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>Sucursales ilimitadas</li>
+        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>Señas y cobros online</li>
+        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>Soporte prioritario</li>
+      </ul>
+      <a href="app.html" style="margin-top:auto;text-align:center;background:#fff;border:1px solid #DCE7EB;color:#243E4B;font-weight:600;font-size:15px;padding:13px;border-radius:14px;box-shadow:0 4px 0 #EAF0F2">Hablar con ventas</a>
+    </div>
+  </div>
+</section>
 
-  <footer>
-    <div class="brand-logo"><img src="assets/logo-clavis.svg" alt="Clavis" style="height:30px;" /></div>
-    <div class="flinks">
+<section style="max-width:1140px;margin:0 auto;padding:60px 24px 80px">
+  <div data-reveal="1" style="position:relative;overflow:hidden;background:#6EABC7;color:#243E4B;border-radius:28px;padding:56px 40px;display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap">
+    <div style="position:absolute;right:-40px;bottom:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,226,109,.28)"></div>
+    <div style="position:relative;z-index:1">
+      <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(26px,3.2vw,38px);letter-spacing:-.03em;margin:0 0 12px;max-width:460px;line-height:1.08">Probalo esta semana. Sin tarjeta.</h2>
+      <p style="font-size:16px;margin:0;max-width:420px;color:#243E4B">14 días completos con todo abierto. Si no te ordena la agenda, te vas y listo.</p>
+    </div>
+    <a href="app.html" style="position:relative;z-index:1;background:#243E4B;color:#fff;font-weight:600;font-size:16px;padding:16px 30px;border-radius:16px;box-shadow:0 5px 0 #16262E;transition:transform .12s ease,box-shadow .12s ease">Crear mi cuenta</a>
+  </div>
+</section>
+
+<footer style="border-top:1px solid #EAF0F2">
+  <div style="max-width:1140px;margin:0 auto;padding:30px 24px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap">
+    <a href="#top" style="display:flex;align-items:center"><img src="assets/logo-clavis.svg" alt="Clavis" style="height:26px;width:auto;display:block" /></a>
+    <div style="display:flex;gap:22px;font-size:14px;color:#5B7482;font-weight:500;flex-wrap:wrap">
       <a href="#producto">Producto</a>
       <a href="#precios">Precios</a>
       <a href="#">Soporte</a>
       <a href="#">Términos</a>
       <a href="#">Privacidad</a>
     </div>
-    <div class="copy">© 2026 Clavis</div>
-  </footer>
-</div>
+    <div style="font-size:13px;color:#5B7482">© 2026 Clavis</div>
+  </div>
+</footer>
+<script>
+(function () {
+  var S = {};
+  function init() {
 
+    const root = document;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    S._timers = [];
+
+    // --- reveal on scroll ---
+    const reveals = Array.from(root.querySelectorAll('[data-reveal]'));
+    reveals.forEach(el => {
+      if (reduce) return;
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(26px)';
+      el.style.transition = 'opacity .6s cubic-bezier(.22,1,.36,1), transform .6s cubic-bezier(.22,1,.36,1)';
+    });
+    const show = el => {
+      const d = (parseInt(el.getAttribute('data-reveal'), 10) || 1) - 1;
+      el.style.transitionDelay = (d * 0.09) + 's';
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    };
+    const io = new IntersectionObserver(es => {
+      es.forEach(e => { if (e.isIntersecting) { show(e.target); io.unobserve(e.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    reveals.forEach(el => io.observe(el));
+    S._timers.push(setTimeout(() => reveals.forEach(show), 2500)); // failsafe
+
+    // --- hero swash ---
+    const sw = root.getElementById('cv-swash');
+    if (sw) S._timers.push(setTimeout(() => { sw.style.transform = 'scaleX(1)'; }, 250));
+
+    // --- scroll progress + nav shadow + blob parallax + step highlight ---
+    const bar = root.getElementById('cv-progress');
+    const nav = root.getElementById('cv-nav');
+    const b1 = root.getElementById('cv-blob-1');
+    const b2 = root.getElementById('cv-blob-2');
+    const track = root.getElementById('cv-track');
+    const steps = Array.from(root.querySelectorAll('[data-step]'));
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const max = Math.max(1, root.documentElement.scrollHeight - window.innerHeight);
+        if (bar) bar.style.width = Math.min(100, (y / max) * 100) + '%';
+        if (nav) nav.style.boxShadow = y > 12 ? '0 10px 24px -20px rgba(36,62,75,.7)' : 'none';
+        if (!reduce) {
+          if (b1) b1.style.transform = 'translateY(' + (y * 0.16) + 'px)';
+          if (b2) b2.style.transform = 'translateY(' + (-y * 0.09) + 'px)';
+        }
+        const mid = window.innerHeight * 0.45;
+        let active = -1;
+        steps.forEach((s, i) => {
+          const r = s.getBoundingClientRect();
+          if (r.top < mid && r.bottom > 80) active = i;
+        });
+        steps.forEach((s, i) => {
+          const on = i === active;
+          s.style.background = on ? '#fff' : '#F7FAFB';
+          s.style.borderColor = on ? '#6EABC7' : '#E6EEF1';
+          s.style.boxShadow = on ? '10px 10px 0 #EAF4F8' : 'none';
+          const num = s.firstElementChild;
+          if (num) num.style.color = on ? '#6EABC7' : '#C9DBE3';
+        });
+        if (track) track.style.width = (active < 0 ? 0 : ((active + 1) / steps.length) * 100) + '%';
+        ticking = false;
+      });
+    };
+    S._onScroll = onScroll;
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // --- count-up metrics ---
+    const counters = Array.from(root.querySelectorAll('[data-count]'));
+    const cio = new IntersectionObserver(es => {
+      es.forEach(e => {
+        if (!e.isIntersecting) return;
+        cio.unobserve(e.target);
+        const target = parseInt(e.target.getAttribute('data-count'), 10) || 0;
+        const dur = 1200, t0 = performance.now();
+        const tick = now => {
+          const p = Math.min(1, (now - t0) / dur);
+          const eased = 1 - Math.pow(1 - p, 3);
+          e.target.textContent = Math.round(target * eased);
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    }, { threshold: 0.4 });
+    counters.forEach(c => cio.observe(c));
+
+    // --- hero card loop ---
+    const slots = Array.from(root.querySelectorAll('[data-slot]'));
+    const ticks = Array.from(root.querySelectorAll('[data-tick]'));
+    const wa = root.getElementById('cv-wa');
+    const occ = root.getElementById('cv-occ');
+    if (occ) {
+      let v = 0;
+      const t0 = performance.now();
+      const run = now => {
+        const p = Math.min(1, (now - t0) / 1400);
+        occ.textContent = Math.round(86 * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(run);
+      };
+      S._timers.push(setTimeout(() => requestAnimationFrame(run), 500));
+    }
+    if (!reduce && slots.length) {
+      let i = 0;
+      const cycle = () => {
+        slots.forEach((s, k) => {
+          const on = k === i;
+          s.style.background = on ? '#EAF4F8' : '#F7FAFB';
+          s.style.borderColor = on ? '#6EABC7' : 'transparent';
+          s.style.transform = on ? 'translateX(4px)' : 'none';
+        });
+        if (ticks[i]) ticks[i].style.opacity = '1';
+        if (i === 1 && wa) {
+          wa.style.opacity = '1';
+          wa.style.transform = 'translateY(0)';
+          S._timers.push(setTimeout(() => { wa.style.opacity = '0'; wa.style.transform = 'translateY(12px)'; }, 2600));
+        }
+        if (i === slots.length - 1) {
+          S._timers.push(setTimeout(() => ticks.forEach(t => { t.style.opacity = '0'; }), 1400));
+        }
+        i = (i + 1) % slots.length;
+      };
+      S._timers.push(setTimeout(() => { cycle(); S._loop = setInterval(cycle, 1700); }, 900));
+    }
+
+    // --- card hover lift (pointer only) ---
+    Array.from(root.querySelectorAll('[data-card]')).forEach(c => {
+      const base = c.style.boxShadow;
+      c.addEventListener('mouseenter', () => {
+        c.style.transform = 'translateY(-6px)';
+        if (base) c.style.boxShadow = base.replace(/^8px 8px/, '12px 12px');
+      });
+      c.addEventListener('mouseleave', () => {
+        c.style.transform = 'none';
+        c.style.boxShadow = base;
+      });
+    });
+
+    // --- hero card tilt ---
+    const tilt = root.getElementById('cv-tilt');
+    if (tilt && !reduce) {
+      const wrapEl = tilt.parentElement;
+      wrapEl.addEventListener('mousemove', ev => {
+        const r = wrapEl.getBoundingClientRect();
+        const dx = (ev.clientX - r.left) / r.width - 0.5;
+        const dy = (ev.clientY - r.top) / r.height - 0.5;
+        tilt.style.transform = 'perspective(900px) rotateY(' + (dx * 6) + 'deg) rotateX(' + (-dy * 6) + 'deg)';
+      });
+      wrapEl.addEventListener('mouseleave', () => { tilt.style.transform = 'none'; });
+    }
+    Array.from(root.querySelectorAll('a[href],button')).forEach(function (el) {
+      var bs = el.style.boxShadow || '';
+      var m = bs.match(/^0 (\d)px 0 (#[0-9A-Fa-f]{6})$/);
+      if (!m) return;
+      var up = bs, down = '0 ' + (parseInt(m[1], 10) - 2) + 'px 0 ' + m[2];
+      el.addEventListener('mouseenter', function () { el.style.transform = 'translateY(2px)'; el.style.boxShadow = down; });
+      el.addEventListener('mouseleave', function () { el.style.transform = 'none'; el.style.boxShadow = up; });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
 </body>
 </html>

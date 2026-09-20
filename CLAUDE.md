@@ -174,6 +174,24 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
 - [x] Probado end-to-end contra un proyecto Supabase real después del
       rediseño: crear turno, marcar asistencia, cancelar, toggle de
       horarios, franjas múltiples por día.
+- [x] Segunda pasada de diseño (`style.css` + `index.html` +
+      `assets/logo-clavis*.svg` + `assets/sin-turnos.svg`, reemplazo
+      directo preparado aparte y aplicado sobre esto): tipografía
+      Bricolage Grotesque para títulos (Poppins se mantiene para el
+      cuerpo), paleta más refinada, `.turno-card` vuelve a tener borde
+      de color a la izquierda pero esta vez ligado de verdad al estado
+      visual (confirmado/atendido/ausente/bloqueado), landing con
+      scroll reveals/parallax/contadores en JS inline sin librerías.
+      `assets/login-ilustracion.svg` NO se tocó en esta pasada — sigue
+      siendo la versión propia, no la de este paquete de diseño.
+      Requirió un fix en `app.js`: `data-estado` del `.turno-card`
+      pasa a ser el estado visual (confirmado/atendido/ausente para
+      turnos ocupados, según `asistio`), no el `estado` crudo de la
+      base — el CSS nuevo colorea por ese primero, no por el segundo.
+      De paso, se sacaron del landing una banda de estadísticas y dos
+      testimonios que traía el paquete de diseño pero eran inventados
+      (mismo criterio que la limpieza de prueba social anterior — hoy
+      no hay comercios reales usando Clavis).
 - [x] Landing (`index.html`, raíz del sitio) con copy/planes/precios del
       mockup; `app.html` es la app logueada (login → agenda).
 - [x] Link público de reservas (`reservar.html` + `reservar.js`): un
