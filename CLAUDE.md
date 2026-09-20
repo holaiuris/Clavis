@@ -121,7 +121,8 @@ turnos-app/
 ├── server/                # servers aparte (Node): recordatorios de WhatsApp y pagos con Mercado Pago — ver server/README.md
 ├── test_huecos.sql        # casos borde de generar_huecos_disponibles — correr manual en el SQL Editor, se auto-deshace (rollback)
 ├── SETUP.md               # instrucciones paso a paso para levantar el proyecto Supabase
-└── DEPLOY.md              # instrucciones paso a paso para deployar (Vercel + Railway) y conectar clavis.ar
+├── DEPLOY.md              # instrucciones paso a paso para deployar (Vercel + Railway) y conectar clavis.ar
+└── PROXIMOS_PASOS.md      # checklist paso a paso de lo que le queda al dueño (no código): clave de servicio, conectar WhatsApp, probar con el peluquero real, deploy, decisiones de negocio pendientes
 ```
 
 `index.html` (el landing) es 100% estático (sin JS de Supabase): copy, planes
