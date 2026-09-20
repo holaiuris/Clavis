@@ -57,9 +57,11 @@ whatsapp.on("ready", () => {
   enviarRecordatoriosPendientes();
   enviarAvisosCancelacion();
   enviarAvisosComercioNuevaReserva();
+  enviarConfirmacionesReserva();
   setInterval(enviarRecordatoriosPendientes, CHECK_INTERVAL_MINUTES * 60 * 1000);
   setInterval(enviarAvisosCancelacion, CHECK_INTERVAL_MINUTES * 60 * 1000);
   setInterval(enviarAvisosComercioNuevaReserva, CHECK_INTERVAL_MINUTES * 60 * 1000);
+  setInterval(enviarConfirmacionesReserva, CHECK_INTERVAL_MINUTES * 60 * 1000);
 });
 
 whatsapp.on("auth_failure", (msg) => console.error("Fallo de autenticación de WhatsApp:", msg));
@@ -223,6 +225,51 @@ async function enviarAvisosComercioNuevaReserva() {
       console.log("Aviso de nueva reserva enviado al comercio -", turno.fecha, hora);
     } catch (err) {
       console.error("No se pudo avisarle al comercio de la reserva", turno.id, ":", err.message);
+    }
+  }
+}
+
+// Confirmación al cliente apenas reserva desde el link público — antes
+// lo único que salía era el recordatorio horas antes; entre reservar y
+// eso, el cliente no tenía nada en su WhatsApp que le confirmara que
+// quedó agendado de verdad.
+async function enviarConfirmacionesReserva() {
+  const { data: turnos, error } = await supabase
+    .from("turnos")
+    .select(
+      "id, fecha, hora_inicio, cliente_nombre, cliente_telefono, peluqueros(nombre), servicios(nombre), profesionales(nombre)"
+    )
+    .eq("origen", "web")
+    .eq("confirmacion_enviada", false)
+    .not("cliente_telefono", "is", null);
+
+  if (error) {
+    console.error("Error consultando turnos para confirmar reserva:", error.message);
+    return;
+  }
+
+  for (const turno of turnos) {
+    const nombreComercio = turno.peluqueros ? turno.peluqueros.nombre : "el comercio";
+    const nombreServicio = turno.servicios ? turno.servicios.nombre : "tu turno";
+    const nombreProfesional = turno.profesionales ? turno.profesionales.nombre : "";
+    const hora = turno.hora_inicio.slice(0, 5);
+    const fechaLarga = new Date(`${turno.fecha}T${turno.hora_inicio}`).toLocaleDateString("es-AR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+
+    const mensaje =
+      `Hola ${turno.cliente_nombre || ""}! Tu turno de ${nombreServicio} en ${nombreComercio}` +
+      `${nombreProfesional ? " con " + nombreProfesional : ""} quedó confirmado para el ${fechaLarga} a las ${hora}.`;
+
+    try {
+      const chatId = normalizarTelefono(turno.cliente_telefono);
+      await whatsapp.sendMessage(chatId, mensaje);
+      await supabase.from("turnos").update({ confirmacion_enviada: true }).eq("id", turno.id);
+      console.log("Confirmación de reserva enviada a", turno.cliente_nombre, "-", turno.fecha, hora);
+    } catch (err) {
+      console.error("No se pudo confirmar la reserva a", turno.cliente_telefono, ":", err.message);
     }
   }
 }

@@ -102,6 +102,7 @@ turnos-app/
 ├── migracion_v6.sql       # slug (link corto), notificaciones_pendientes (aviso al cliente al cancelar) y teléfono obligatorio al reservar
 ├── migracion_v7.sql       # vista peluqueros_publico (RLS pública ya no expone la tabla entera) + valida duración real del servicio en turnos_public_insert
 ├── migracion_v8.sql       # turnos.aviso_comercio_enviado — avisa por WhatsApp al comercio cuando entra una reserva nueva por el link público
+├── migracion_v9.sql       # turnos.confirmacion_enviada — confirma por WhatsApp al cliente apenas reserva
 ├── vercel.json            # rewrite /r/:slug -> /reservar.html?slug=:slug (link corto, ver DEPLOY.md)
 ├── index.html             # LANDING — página de marketing estática (no usa Supabase), es la raíz del sitio; "Entrar" y todos los CTA llevan a app.html
 ├── app.html               # shell de la app logueada (login → agenda)
@@ -128,8 +129,9 @@ Google Cloud + Supabase (ver `SETUP.md`).
 **Orden de instalación SQL:** `schema.sql` → `migracion_v2.sql` →
 `huecos.sql` → `migracion_v3_enum.sql` (sola, transacción propia) →
 `migracion_v3.sql` → `migracion_v4.sql` → `migracion_v5.sql` →
-`migracion_v6.sql` → `migracion_v7.sql` → `migracion_v8.sql` (ver
-`SETUP.md`). Todas las migraciones son en caliente: no borran datos.
+`migracion_v6.sql` → `migracion_v7.sql` → `migracion_v8.sql` →
+`migracion_v9.sql` (ver `SETUP.md`). Todas las migraciones son en
+caliente: no borran datos.
 
 ## Cómo correrlo local
 ```bash
@@ -195,6 +197,22 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
 - [x] Precio visible antes de reservar (`reservar.js`): el selector de
       servicio y la pantalla de confirmación muestran `servicios.precio`
       cuando está cargado.
+- [x] Confirmación por WhatsApp al reservar (`migracion_v9.sql` +
+      `server/index.js`): además del recordatorio horas antes, el
+      cliente recibe un WhatsApp apenas su turno queda cargado
+      (`turnos.confirmacion_enviada`). Mismo patrón que
+      `aviso_comercio_enviado` — lee directo de `turnos`, sin pasar por
+      `notificaciones_pendientes`, para no tener que abrir una policy
+      de INSERT público nueva (superficie de abuso: cualquiera podría
+      encolar avisos a un teléfono ajeno sin pasar por una reserva
+      real).
+- [x] Vista "Clientes" (`app.js`, nueva pestaña en la sidebar):
+      buscador por nombre/teléfono (client-side, sobre `clientes` ya
+      cargado) y ficha por cliente al hacer click — turnos totales,
+      ausencias, gasto total (suma de `servicios.precio` en turnos con
+      `asistio = true`) e historial completo. No hizo falta migración,
+      la tabla `clientes` ya existía desde `migracion_v2.sql` pero no
+      tenía una vista dedicada.
 - [x] Link corto para compartir (`migracion_v6.sql` + `vercel.json`):
       cada comercio elige un slug desde Horarios → "Marca del link
       público" (ej. `clavis.ar/r/peluqueria-lucia`) en vez del

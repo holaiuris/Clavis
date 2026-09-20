@@ -26,7 +26,9 @@ const state = {
   huecos: [],
   turnos: [],
   agendaFiltro: "todos", // todos | confirmado | atendido | ausente | bloqueado
-  view: "agenda", // agenda | metricas | horarios
+  view: "agenda", // agenda | clientes | metricas | horarios
+  clientes: [],
+  clientesQuery: "",
   metricas: null,
   horariosWeekCounts: {},
   loading: false,
@@ -435,6 +437,7 @@ function renderApp() {
         <div class="sidebar-comercio">${escapeHtml(state.peluquero.nombre)}</div>
         <nav class="sidebar-nav">
           <button class="nav-item ${state.view === "agenda" ? "active" : ""}" data-view="agenda"><span class="navdot"></span>Agenda</button>
+          <button class="nav-item ${state.view === "clientes" ? "active" : ""}" data-view="clientes"><span class="navdot"></span>Clientes</button>
           <button class="nav-item ${state.view === "metricas" ? "active" : ""}" data-view="metricas"><span class="navdot"></span>Métricas</button>
           <button class="nav-item ${state.view === "horarios" ? "active" : ""}" data-view="horarios"><span class="navdot"></span>Horarios</button>
         </nav>
@@ -454,6 +457,7 @@ function renderApp() {
       <main class="content">
         ${state.error ? `<div class="error-msg">${escapeHtml(state.error)}</div>` : ""}
         ${state.view === "agenda" ? renderAgendaView() : ""}
+        ${state.view === "clientes" ? renderClientesView() : ""}
         ${state.view === "metricas" ? renderMetricasView() : ""}
         ${state.view === "horarios" ? renderHorariosView() : ""}
       </main>
@@ -494,6 +498,7 @@ function renderApp() {
   }
 
   if (state.view === "agenda") wireAgendaView();
+  if (state.view === "clientes") wireClientesView();
   if (state.view === "metricas") wireMetricasView();
   if (state.view === "horarios") wireHorariosView();
 }
@@ -509,6 +514,12 @@ async function goToView(view) {
   if (view === "horarios") {
     renderApp();
     await withLoading(loadHorariosWeekCounts);
+    renderApp();
+    return;
+  }
+  if (view === "clientes") {
+    renderApp();
+    await withLoading(loadClientes);
     renderApp();
     return;
   }
@@ -1053,6 +1064,135 @@ async function mutateTurno(fn) {
       errorEl.textContent = err.code === "23P01" ? "Ese horario ya no está disponible." : err.message || "No se pudo guardar";
     }
   }
+}
+
+// ------------------------------------------------------------
+// Vista: Clientes
+// ------------------------------------------------------------
+async function loadClientes() {
+  const { data, error } = await db
+    .from("clientes")
+    .select("*")
+    .eq("peluquero_id", state.peluquero.id)
+    .order("nombre");
+  if (error) throw error;
+  state.clientes = data;
+}
+
+function renderClientesView() {
+  const q = state.clientesQuery.trim().toLowerCase();
+  const filtrados = !q
+    ? state.clientes
+    : state.clientes.filter(
+        (c) => c.nombre.toLowerCase().includes(q) || (c.telefono || "").toLowerCase().includes(q)
+      );
+
+  const filas = filtrados
+    .map(
+      (c) => `
+    <div class="row-item" data-cliente-id="${c.id}" style="cursor:pointer;">
+      <div class="avatar">${escapeHtml(iniciales(c.nombre))}</div>
+      <div class="grow">
+        <div style="font-weight:700;">${escapeHtml(c.nombre)}</div>
+        <div class="hint" style="margin-top:0;">${c.telefono ? escapeHtml(c.telefono) : "Sin teléfono"}</div>
+      </div>
+    </div>`
+    )
+    .join("");
+
+  return `
+    <div class="content-header">
+      <h2>Clientes</h2>
+      <p class="sub">${state.clientes.length} cliente${state.clientes.length === 1 ? "" : "s"} en tu historial.</p>
+    </div>
+    <input type="text" id="clientes-buscar" placeholder="Buscar por nombre o teléfono..." value="${escapeHtml(state.clientesQuery)}" style="max-width:340px;margin-bottom:16px;" />
+    <div class="row-list">
+      ${filas || `<span class="hint">${state.clientes.length ? "Ningún cliente coincide con la búsqueda." : "Todavía no tenés clientes — aparecen acá apenas cargues el primer turno con nombre."}</span>`}
+    </div>
+  `;
+}
+
+function wireClientesView() {
+  const buscar = document.getElementById("clientes-buscar");
+  buscar.addEventListener("input", () => {
+    state.clientesQuery = buscar.value;
+    renderApp();
+    document.getElementById("clientes-buscar").focus();
+    const val = document.getElementById("clientes-buscar");
+    val.selectionStart = val.selectionEnd = val.value.length;
+  });
+
+  document.querySelectorAll("[data-cliente-id]").forEach((row) => {
+    row.addEventListener("click", () => openClienteDetailModal(row.dataset.clienteId));
+  });
+}
+
+async function openClienteDetailModal(clienteId) {
+  const cliente = state.clientes.find((c) => c.id === clienteId);
+  if (!cliente) return;
+
+  openModal(`
+    <div class="turno-detail-head">
+      <div class="avatar">${escapeHtml(iniciales(cliente.nombre))}</div>
+      <div>
+        <div class="turno-detail-name">${escapeHtml(cliente.nombre)}</div>
+        <div class="turno-detail-contact">${cliente.telefono ? escapeHtml(cliente.telefono) + " · " : ""}cliente desde ${escapeHtml(new Date(cliente.creado_en).toLocaleDateString("es-AR", { year: "numeric", month: "long" }))}</div>
+      </div>
+    </div>
+    <div id="cliente-historial"><p class="hint">Cargando historial...</p></div>
+  `);
+
+  const { data: turnos, error } = await db
+    .from("turnos")
+    .select("*, servicios(nombre, precio)")
+    .eq("cliente_id", clienteId)
+    .eq("estado", "ocupado")
+    .order("fecha", { ascending: false })
+    .order("hora_inicio", { ascending: false });
+
+  const cont = document.getElementById("cliente-historial");
+  if (!cont) return; // se cerró el modal mientras cargaba
+  if (error) {
+    cont.innerHTML = `<p class="error-msg">${escapeHtml(error.message)}</p>`;
+    return;
+  }
+
+  const totalTurnos = turnos.length;
+  const ausencias = turnos.filter((t) => t.asistio === false).length;
+  const gastoTotal = turnos
+    .filter((t) => t.asistio === true && t.servicios && t.servicios.precio)
+    .reduce((acc, t) => acc + Number(t.servicios.precio), 0);
+
+  const historialHtml = turnos.length
+    ? turnos
+        .map((t) => {
+          let badge = `<span class="status-badge confirmado">Confirmado</span>`;
+          if (t.asistio === true) badge = `<span class="status-badge atendido">Atendido</span>`;
+          else if (t.asistio === false) badge = `<span class="status-badge ausente">Ausente</span>`;
+          const fechaCorta = new Date(t.fecha + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+          return `
+        <div class="row-item">
+          <div class="grow">
+            <span style="font-weight:700;">${t.servicios ? escapeHtml(t.servicios.nombre) : "—"}</span> ${badge}
+            <div class="hint" style="margin-top:0;">${fechaCorta} · ${hhmm(t.hora_inicio)}</div>
+          </div>
+          <span style="font-weight:700;">${t.servicios && t.servicios.precio ? "$" + Number(t.servicios.precio).toLocaleString("es-AR") : ""}</span>
+        </div>`;
+        })
+        .join("")
+    : `<p class="hint">Sin turnos registrados.</p>`;
+
+  cont.innerHTML = `
+    <div class="turno-detail-grid">
+      <div><div class="g-label">Turnos</div><div class="g-value">${totalTurnos}</div></div>
+      <div><div class="g-label">Ausencias</div><div class="g-value">${ausencias}</div></div>
+      <div><div class="g-label">Gasto total</div><div class="g-value">$${gastoTotal.toLocaleString("es-AR")}</div></div>
+    </div>
+    <div class="metrics-card" style="margin-top:14px;">
+      <h4>Historial</h4>
+      <div class="row-list">${historialHtml}</div>
+    </div>
+  `;
 }
 
 // ------------------------------------------------------------

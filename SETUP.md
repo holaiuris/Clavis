@@ -51,6 +51,11 @@ consulta):**
     `turnos.aviso_comercio_enviado`, que usa `server/index.js` para
     avisarle al comercio por WhatsApp cuando entra una reserva nueva
     por el link público.
+12. Pegar el contenido completo de `migracion_v9.sql` → **Run**. Agrega
+    `turnos.confirmacion_enviada`, que usa `server/index.js` para
+    confirmarle al cliente por WhatsApp que su turno quedó cargado
+    (antes de esto, lo único que salía era el recordatorio horas
+    antes).
 
 Si tu proyecto ya tenía datos cargados de una instalación anterior, no
 hace falta borrar nada: corré igual los pasos que falten sobre lo que
