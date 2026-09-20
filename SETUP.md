@@ -66,6 +66,13 @@ consulta):**
     anota desde `reservar.html` cuando no hay huecos, y se le avisa
     por WhatsApp si se libera algo ese día (al cancelar, desde
     cualquiera de los dos caminos: comercio o cliente).
+15. Pegar el contenido completo de `migracion_v12.sql` → **Run**.
+    Agrega `'cancelado'` al enum `turno_estado`.
+16. Pegar el contenido completo de `migracion_v13.sql` → **Run**,
+    **como consulta separada** (mismo motivo que el paso 5: Postgres no
+    deja usar un valor de enum nuevo en la misma transacción en que se
+    lo crea). Redefine `cancelar_turno_cliente()` para marcar
+    `estado = 'cancelado'` en vez de borrar la fila.
 
 Si tu proyecto ya tenía datos cargados de una instalación anterior, no
 hace falta borrar nada: corré igual los pasos que falten sobre lo que

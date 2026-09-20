@@ -105,6 +105,8 @@ turnos-app/
 ├── migracion_v9.sql       # turnos.confirmacion_enviada — confirma por WhatsApp al cliente apenas reserva
 ├── migracion_v10.sql      # obtener_turno_cliente/cancelar_turno_cliente — el cliente ve y cancela su turno desde reservar.html?turno=<id>
 ├── migracion_v11.sql      # lista_espera + avisar_lista_espera — el cliente se anota si no hay huecos, se le avisa al liberarse algo
+├── migracion_v12.sql      # agrega 'cancelado' al enum turno_estado (va SOLA, transacción propia)
+├── migracion_v13.sql      # cancelar_turno_cliente() marca estado='cancelado' en vez de borrar — depende de migracion_v12.sql
 ├── vercel.json            # rewrite /r/:slug -> /reservar.html?slug=:slug (link corto, ver DEPLOY.md)
 ├── index.html             # LANDING — página de marketing estática (no usa Supabase), es la raíz del sitio; "Entrar" y todos los CTA llevan a app.html
 ├── app.html               # shell de la app logueada (login → agenda)
@@ -132,8 +134,10 @@ Google Cloud + Supabase (ver `SETUP.md`).
 `huecos.sql` → `migracion_v3_enum.sql` (sola, transacción propia) →
 `migracion_v3.sql` → `migracion_v4.sql` → `migracion_v5.sql` →
 `migracion_v6.sql` → `migracion_v7.sql` → `migracion_v8.sql` →
-`migracion_v9.sql` → `migracion_v10.sql` → `migracion_v11.sql` (ver
-`SETUP.md`). Todas las migraciones son en caliente: no borran datos.
+`migracion_v9.sql` → `migracion_v10.sql` → `migracion_v11.sql` →
+`migracion_v12.sql` → `migracion_v13.sql` (sola, transacción propia,
+mismo motivo que `migracion_v3_enum.sql`) (ver `SETUP.md`). Todas las
+migraciones son en caliente: no borran datos.
 
 ## Cómo correrlo local
 ```bash
@@ -254,6 +258,16 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
       servicio pedido — un falso positivo no hace daño, el cliente
       entra al link y no ve nada que le sirva. El comercio ve quién
       está anotado desde Horarios → "Lista de espera" (solo lectura).
+- [x] Cancelar ya no borra la fila (`migracion_v12.sql` +
+      `migracion_v13.sql`): marca `estado = 'cancelado'` — antes se
+      perdía el registro de que el turno existió. No hizo falta tocar
+      `generar_huecos_disponibles` ni el exclude constraint, los dos
+      ya filtraban solo `ocupado`/`bloqueado` (el schema ya venía
+      preparado para esto sin saberlo). La ficha de cliente
+      (`app.js`) y Métricas ("Cancelados esta semana", por
+      `actualizado_en`, no por `fecha` — son preguntas distintas) ya
+      lo muestran. Solo bloqueos ("Liberar horario") siguen
+      borrándose de verdad, no son una cita de cliente.
 - [x] Link corto para compartir (`migracion_v6.sql` + `vercel.json`):
       cada comercio elige un slug desde Horarios → "Marca del link
       público" (ej. `clavis.ar/r/peluqueria-lucia`) en vez del
@@ -286,6 +300,22 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
 - [ ] Login con Google: pendiente, decisión explícita de no hacerlo
       todavía (requiere que el dueño cree credenciales OAuth en Google
       Cloud).
+- [ ] Gate real de trial/plan: `peluqueros.plan`/`trial_inicio` siguen
+      siendo 100% informativos, nunca bloquean nada — técnicamente
+      nadie tiene que pagar. Si la idea es cobrar de verdad en serio,
+      falta decidir QUÉ se corta al vencer el trial sin plan pago
+      (¿nuevos turnos? ¿el link público?) — es una decisión de negocio,
+      no la tomo unilateralmente.
+- [ ] `app.js` sin modularizar (un solo archivo, ~2000 líneas). El
+      naming (`renderXView`/`wireXView`) lo mantiene navegable, pero
+      separarlo en módulos ES ayudaría. Lo pausé a propósito: sin
+      tests automatizados de por medio, un refactor grande así tiene
+      riesgo real de regresión silenciosa — mejor con la próxima red
+      de seguridad puesta, no antes.
+- [ ] Cero tests automatizados, sobre todo para
+      `generar_huecos_disponibles` (si se rompe, doble-reservás o
+      desaparecen huecos) — valdría un puñado de casos borde en SQL
+      (pgTAP o un script que la llame directo).
 - [ ] Deliberadamente NO calcado del mockup: duración de turno global en
       Horarios (choca con que la duración depende del servicio elegido),
       log de "Actividad" tipo timeline (no hay tracking de eventos real

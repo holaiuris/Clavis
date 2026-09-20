@@ -43,6 +43,11 @@
     .dia-pill:hover { border-color: var(--accent); opacity: 1; }
     .dia-pill.active { background: var(--accent); border-color: var(--accent); }
     .dia-pill.active .dia-pill-nombre, .dia-pill.active .dia-pill-num { color: #fff; }
+    /* .dia-pill es un <button> — sin esto hereda el escalón oscuro y
+       el salto de padding al hacer click de style.css (pensado para
+       CTAs tipo "Confirmar turno"), que acá se siente como delay. */
+    .dia-pill::after { content: none; }
+    .dia-pill:active:not(:disabled) { border-width: 1.5px; padding-bottom: 10px; }
     /* Lista de espera: a propósito más chica/discreta que la tira de
        días de arriba — es el plan B, no lo primero que se ve. */
     .espera-cta { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }

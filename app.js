@@ -938,12 +938,15 @@ function renderTurnoDetailModal(turno) {
   document.getElementById("turno-liberar").addEventListener("click", () => cancelarTurnoConAviso(turno));
 }
 
-// Al cancelar un turno con cliente, encolamos un aviso de WhatsApp
-// ANTES de borrar la fila (el turno deja de existir apenas se libera
-// el hueco — ver "Decisión de diseño clave" en CLAUDE.md — así que no
-// hay otro lugar de donde sacar después el teléfono/horario). Es
-// best-effort: si falla el insert de la notificación no bloqueamos la
-// cancelación en sí, solo no va a salir el aviso.
+// Cancelar marca estado = 'cancelado' en vez de borrar (migracion_v12.sql)
+// — así queda historial para la ficha del cliente y para reportes
+// ("¿cuántos se cancelaron esta semana?"). El exclude constraint y
+// generar_huecos_disponibles solo miran 'ocupado'/'bloqueado', así que
+// un turno cancelado libera el hueco exactamente igual que antes con
+// el delete. Encolamos el aviso de WhatsApp antes, aunque ya no sea
+// estrictamente necesario (la fila sigue existiendo) — por las dudas
+// de que algo falle a mitad de camino. Es best-effort: si falla el
+// insert de la notificación no bloqueamos la cancelación en sí.
 async function cancelarTurnoConAviso(turno) {
   if (turno.cliente_telefono) {
     const { error: avisoError } = await db.from("notificaciones_pendientes").insert({
@@ -956,7 +959,7 @@ async function cancelarTurnoConAviso(turno) {
     });
     if (avisoError) console.error("No se pudo encolar el aviso de cancelación:", avisoError);
   }
-  await mutateTurno(() => db.from("turnos").delete().eq("id", turno.id));
+  await mutateTurno(() => db.from("turnos").update({ estado: "cancelado" }).eq("id", turno.id));
   // Best-effort: si alguien está en la lista de espera para este día
   // (ver migracion_v11.sql), avisarle que se liberó algo. No bloquea
   // la cancelación en sí si falla.
@@ -1162,7 +1165,7 @@ async function openClienteDetailModal(clienteId) {
     .from("turnos")
     .select("*, servicios(nombre, precio)")
     .eq("cliente_id", clienteId)
-    .eq("estado", "ocupado")
+    .in("estado", ["ocupado", "cancelado"])
     .order("fecha", { ascending: false })
     .order("hora_inicio", { ascending: false });
 
@@ -1173,8 +1176,9 @@ async function openClienteDetailModal(clienteId) {
     return;
   }
 
-  const totalTurnos = turnos.length;
+  const totalTurnos = turnos.filter((t) => t.estado === "ocupado").length;
   const ausencias = turnos.filter((t) => t.asistio === false).length;
+  const cancelados = turnos.filter((t) => t.estado === "cancelado").length;
   const gastoTotal = turnos
     .filter((t) => t.asistio === true && t.servicios && t.servicios.precio)
     .reduce((acc, t) => acc + Number(t.servicios.precio), 0);
@@ -1183,7 +1187,8 @@ async function openClienteDetailModal(clienteId) {
     ? turnos
         .map((t) => {
           let badge = `<span class="status-badge confirmado">Confirmado</span>`;
-          if (t.asistio === true) badge = `<span class="status-badge atendido">Atendido</span>`;
+          if (t.estado === "cancelado") badge = `<span class="status-badge cancelado">Cancelado</span>`;
+          else if (t.asistio === true) badge = `<span class="status-badge atendido">Atendido</span>`;
           else if (t.asistio === false) badge = `<span class="status-badge ausente">Ausente</span>`;
           const fechaCorta = new Date(t.fecha + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" });
           return `
@@ -1202,6 +1207,7 @@ async function openClienteDetailModal(clienteId) {
     <div class="turno-detail-grid">
       <div><div class="g-label">Turnos</div><div class="g-value">${totalTurnos}</div></div>
       <div><div class="g-label">Ausencias</div><div class="g-value">${ausencias}</div></div>
+      <div><div class="g-label">Cancelados</div><div class="g-value">${cancelados}</div></div>
       <div><div class="g-label">Gasto total</div><div class="g-value">$${gastoTotal.toLocaleString("es-AR")}</div></div>
     </div>
     <div class="metrics-card" style="margin-top:14px;">
@@ -1298,11 +1304,25 @@ async function loadMetricas() {
     barras.push({ letra: DIAS_LETRA[d.getDay()], cant: porDia[f] || 0 });
   }
 
+  // Cancelados esta semana (migracion_v12.sql: cancelar ya no borra,
+  // marca estado='cancelado' — separado del resto de las métricas
+  // porque el query principal de arriba filtra justo lo contrario).
+  // Por actualizado_en (cuándo se canceló, trigger en schema.sql), no
+  // por fecha (cuándo era el turno) — son preguntas distintas.
+  const { count: canceladosSemana, error: canceladosErr } = await db
+    .from("turnos")
+    .select("id", { count: "exact", head: true })
+    .eq("estado", "cancelado")
+    .gte("actualizado_en", weekStartISO)
+    .lt("actualizado_en", isoDate(new Date(weekEnd.getTime() + 24 * 60 * 60 * 1000)));
+  if (canceladosErr) throw canceladosErr;
+
   state.metricas = {
     hoyTotal, hoyCant, semanaTotal, semanaCant, mesTotal, mesCant,
     ocupacionPct: minutosDisponiblesMes > 0 ? Math.round((minutosOcupadosMes / minutosDisponiblesMes) * 100) : null,
     ausenciasPct: marcadosMes > 0 ? Math.round((ausentesMes / marcadosMes) * 100) : null,
     marcadosMes,
+    canceladosSemana: canceladosSemana || 0,
     topServicios,
     barras,
   };
@@ -1329,6 +1349,7 @@ function renderMetricasView() {
       <div class="stat-tile"><div class="stat-n">${m.ocupacionPct === null ? "—" : m.ocupacionPct + "%"}</div><div class="stat-l">Ocupación este mes</div></div>
       <div class="stat-tile"><div class="stat-n">${m.ausenciasPct === null ? "—" : m.ausenciasPct + "%"}</div><div class="stat-l">Ausencias ${m.marcadosMes ? `(${m.marcadosMes} marcados)` : "(nada marcado)"}</div></div>
       <div class="stat-tile"><div class="stat-n">${m.mesCant}</div><div class="stat-l">Turnos este mes</div></div>
+      <div class="stat-tile"><div class="stat-n">${m.canceladosSemana}</div><div class="stat-l">Cancelados esta semana</div></div>
       <div class="stat-tile accent-fill"><div class="stat-n">$${m.mesTotal.toLocaleString("es-AR")}</div><div class="stat-l">Ingresos este mes</div></div>
     </div>
 

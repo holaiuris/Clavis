@@ -604,6 +604,7 @@ button:disabled {
 .status-badge.confirmado { background: #fff6da; color: #8a6d00; }
 .status-badge.atendido { background: var(--libre-bg); color: var(--libre); }
 .status-badge.ausente { background: var(--bloqueado-bg); color: var(--bloqueado); }
+.status-badge.cancelado { background: var(--panel-2); color: var(--text-muted); }
 
 .slot-empty {
   flex: 1;
