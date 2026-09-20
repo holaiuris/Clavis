@@ -12,10 +12,14 @@
 // y Meta podría banear el número si detecta patrón de bot. Sirve para
 // validar el flujo antes de comprometerse a la API oficial de Meta.
 //
-// Qué hace: cada CHECK_INTERVAL_MINUTES, busca turnos 'ocupado' sin
-// recordatorio mandado cuya hora ya entró en la ventana configurada
-// por el comercio (peluqueros.recordatorio_offset_horas) y les manda
-// un WhatsApp.
+// Qué hace, cada CHECK_INTERVAL_MINUTES:
+//   - Recordatorio al cliente: turnos 'ocupado' sin recordatorio
+//     mandado cuya hora ya entró en la ventana configurada por el
+//     comercio (peluqueros.recordatorio_offset_horas).
+//   - Aviso al cliente si el comercio cancela su turno.
+//   - Aviso al COMERCIO cuando entra una reserva nueva por el link
+//     público (reservar.html) — para que no se entere recién al abrir
+//     la app al otro día.
 // ============================================================
 
 require("dotenv").config();
@@ -52,8 +56,10 @@ whatsapp.on("ready", () => {
   console.log(`WhatsApp conectado. Revisando recordatorios y avisos cada ${CHECK_INTERVAL_MINUTES} minuto(s).`);
   enviarRecordatoriosPendientes();
   enviarAvisosCancelacion();
+  enviarAvisosComercioNuevaReserva();
   setInterval(enviarRecordatoriosPendientes, CHECK_INTERVAL_MINUTES * 60 * 1000);
   setInterval(enviarAvisosCancelacion, CHECK_INTERVAL_MINUTES * 60 * 1000);
+  setInterval(enviarAvisosComercioNuevaReserva, CHECK_INTERVAL_MINUTES * 60 * 1000);
 });
 
 whatsapp.on("auth_failure", (msg) => console.error("Fallo de autenticación de WhatsApp:", msg));
@@ -164,6 +170,59 @@ async function enviarAvisosCancelacion() {
       console.log("Aviso de cancelación enviado a", aviso.cliente_nombre, "-", aviso.fecha, hora);
     } catch (err) {
       console.error("No se pudo enviar aviso de cancelación a", aviso.cliente_telefono, ":", err.message);
+    }
+  }
+}
+
+// Aviso al COMERCIO (no al cliente) de que entró una reserva nueva
+// por el link público — si alguien reserva a las 2 AM, hoy el
+// comercio recién se entera cuando abre la app. Solo turnos
+// origen='web': los que carga el propio comercio a mano no necesitan
+// avisarle nada a sí mismo.
+async function enviarAvisosComercioNuevaReserva() {
+  const { data: turnos, error } = await supabase
+    .from("turnos")
+    .select(
+      "id, fecha, hora_inicio, cliente_nombre, peluqueros(nombre, telefono), servicios(nombre), profesionales(nombre)"
+    )
+    .eq("origen", "web")
+    .eq("aviso_comercio_enviado", false);
+
+  if (error) {
+    console.error("Error consultando turnos para avisar al comercio:", error.message);
+    return;
+  }
+
+  for (const turno of turnos) {
+    const telefonoComercio = turno.peluqueros && turno.peluqueros.telefono;
+    if (!telefonoComercio) {
+      // No tiene teléfono cargado — no hay a quién avisarle. No tiene
+      // sentido reintentar en el próximo ciclo, así que lo marcamos
+      // igual para no volver a procesarlo en vano.
+      await supabase.from("turnos").update({ aviso_comercio_enviado: true }).eq("id", turno.id);
+      continue;
+    }
+
+    const nombreServicio = turno.servicios ? turno.servicios.nombre : "un turno";
+    const nombreProfesional = turno.profesionales ? turno.profesionales.nombre : "";
+    const hora = turno.hora_inicio.slice(0, 5);
+    const fechaLarga = new Date(`${turno.fecha}T${turno.hora_inicio}`).toLocaleDateString("es-AR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+
+    const mensaje =
+      `Nueva reserva por tu link de Clavis: ${turno.cliente_nombre || "un cliente"} — ${nombreServicio}` +
+      `${nombreProfesional ? " con " + nombreProfesional : ""}, ${fechaLarga} a las ${hora}.`;
+
+    try {
+      const chatId = normalizarTelefono(telefonoComercio);
+      await whatsapp.sendMessage(chatId, mensaje);
+      await supabase.from("turnos").update({ aviso_comercio_enviado: true }).eq("id", turno.id);
+      console.log("Aviso de nueva reserva enviado al comercio -", turno.fecha, hora);
+    } catch (err) {
+      console.error("No se pudo avisarle al comercio de la reserva", turno.id, ":", err.message);
     }
   }
 }

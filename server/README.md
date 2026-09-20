@@ -1,8 +1,10 @@
 # Recordatorios de WhatsApp — server
 
-Manda un WhatsApp a cada cliente antes de su turno. Es el único
-componente de Clavis que necesita un proceso corriendo aparte (todo
-el resto es estático, ver `../CLAUDE.md`).
+Manda WhatsApps: recordatorio al cliente antes de su turno, aviso al
+cliente si el comercio cancela, y aviso al **comercio** cuando entra
+una reserva nueva por el link público. Es el único componente de
+Clavis que necesita un proceso corriendo aparte (todo el resto es
+estático, ver `../CLAUDE.md`).
 
 Usa **whatsapp-web.js** (no oficial): gratis y arranca hoy, pero corre
 sobre un WhatsApp real (el tuyo o uno dedicado al negocio) escaneando
@@ -58,6 +60,10 @@ turnos que necesitan recordatorio y los manda.
   uses).
 - Cada comercio configura desde la app (vista Horarios) cuántas horas
   antes se manda el recordatorio, o "No enviar".
+- El aviso de "nueva reserva" al comercio necesita que el comercio
+  tenga `telefono` cargado (`peluqueros.telefono`, se completa en el
+  alta) — si está vacío, ese turno se marca como ya avisado sin
+  mandar nada, no reintenta en cada ciclo.
 - Los números de teléfono se asumen argentinos si no traen código de
   país — es una heurística simple (`normalizarTelefono` en
   `index.js`), revisala si cargás clientes de otros países.

@@ -142,7 +142,10 @@ function render() {
     .map((p) => `<option value="${p.id}" ${p.id === state.profesionalId ? "selected" : ""}>${escapeHtml(p.nombre)}</option>`)
     .join("");
   const serviciosOptions = state.servicios
-    .map((s) => `<option value="${s.id}" ${s.id === state.servicioId ? "selected" : ""}>${escapeHtml(s.nombre)} (${s.duracion_minutos}')</option>`)
+    .map((s) => {
+      const precio = s.precio ? ` — $${Number(s.precio).toLocaleString("es-AR")}` : "";
+      return `<option value="${s.id}" ${s.id === state.servicioId ? "selected" : ""}>${escapeHtml(s.nombre)} (${s.duracion_minutos}')${precio}</option>`;
+    })
     .join("");
 
   const huecosHtml = state.huecos.length
@@ -216,9 +219,11 @@ function renderConfirmacion() {
     month: "long",
   });
 
+  const precioTexto = servicio && servicio.precio ? ` · $${Number(servicio.precio).toLocaleString("es-AR")}` : "";
+
   app.innerHTML = `
     <h1>Confirmá tu turno</h1>
-    <p class="hint">${escapeHtml(servicio ? servicio.nombre : "")} con ${escapeHtml(profesional ? profesional.nombre : "")}<br/>${escapeHtml(fechaLarga)} · ${hhmm(h.hora_inicio)} - ${hhmm(h.hora_fin)}</p>
+    <p class="hint">${escapeHtml(servicio ? servicio.nombre : "")} con ${escapeHtml(profesional ? profesional.nombre : "")}${precioTexto}<br/>${escapeHtml(fechaLarga)} · ${hhmm(h.hora_inicio)} - ${hhmm(h.hora_fin)}</p>
     <form id="confirmar-form">
       <div>
         <label>Tu nombre</label>

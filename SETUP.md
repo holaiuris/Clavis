@@ -47,6 +47,10 @@ consulta):**
     tabla entera, teléfono/plan/etc. de TODOS los comercios, a
     cualquiera con la anon key) y valida que la duración del turno
     insertado coincida con la del servicio elegido.
+11. Pegar el contenido completo de `migracion_v8.sql` → **Run**. Agrega
+    `turnos.aviso_comercio_enviado`, que usa `server/index.js` para
+    avisarle al comercio por WhatsApp cuando entra una reserva nueva
+    por el link público.
 
 Si tu proyecto ya tenía datos cargados de una instalación anterior, no
 hace falta borrar nada: corré igual los pasos que falten sobre lo que
