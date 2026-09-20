@@ -270,7 +270,7 @@ function renderLogin() {
   app.innerHTML = `
     <div class="login-shell">
       <div class="login-aside">
-        <div class="brand"><span class="brand-mark"></span>Clavis</div>
+        <div class="brand"><img src="assets/logo-clavis-light.svg" alt="Clavis" /></div>
         <img class="login-illustration" src="assets/login-ilustracion.svg" alt="" />
         <h2>El cuaderno de turnos ya cumplió.</h2>
         <p>Entrá y mirá la agenda de hoy, sin llamados ni idas y vueltas.</p>
@@ -434,7 +434,7 @@ function renderApp() {
   app.innerHTML = `
     <div class="shell">
       <aside class="sidebar">
-        <div class="sidebar-brand"><span class="brand-mark"></span>Clavis</div>
+        <div class="sidebar-brand"><img src="assets/logo-clavis.svg" alt="Clavis" /></div>
         <div class="sidebar-comercio">${escapeHtml(state.peluquero.nombre)}</div>
         <nav class="sidebar-nav">
           <button class="nav-item ${state.view === "agenda" ? "active" : ""}" data-view="agenda"><span class="navdot"></span>Agenda</button>

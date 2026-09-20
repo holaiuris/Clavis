@@ -58,9 +58,8 @@
     flex-wrap: wrap;
     gap: 12px;
   }
-  .brand-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 22px; }
-  .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; }
-  .brand-mark::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #fff; }
+  .brand-logo { display: flex; align-items: center; }
+  .brand-logo img { height: 30px; width: auto; }
   .hero-links { display: flex; align-items: center; gap: 26px; font-weight: 600; font-size: 15px; color: var(--text-muted); }
   /* Mismo botón que el resto de la app (ver style.css): un escalón
      sólido más oscuro (::after) se asoma debajo y desaparece al
@@ -175,7 +174,7 @@
 
 <div class="wrap">
   <header class="hero">
-    <div class="brand-logo"><span class="brand-mark"></span>Clavis</div>
+    <div class="brand-logo"><img src="assets/logo-clavis.svg" alt="Clavis" /></div>
     <div class="hero-links">
       <a href="#producto">Producto</a>
       <a href="#precios">Precios</a>
@@ -290,7 +289,7 @@
   </section>
 
   <footer>
-    <div class="brand-logo" style="font-size:18px;"><span class="brand-mark"></span>Clavis</div>
+    <div class="brand-logo"><img src="assets/logo-clavis.svg" alt="Clavis" style="height:22px;" /></div>
     <div class="flinks">
       <a href="#producto">Producto</a>
       <a href="#precios">Precios</a>
