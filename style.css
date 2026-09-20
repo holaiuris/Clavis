@@ -58,25 +58,51 @@ select:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="te
   box-shadow: 0 0 0 3px rgba(110, 171, 199, 0.18);
 }
 
+/* Botón estilo Uiverse.io (by Mike11jr), recoloreado con la paleta de
+   la marca: el barrido diagonal en --detail (amarillo) al pasar el
+   mouse, sombra sólida en vez de blur, más redondeado que el original
+   (pill completo en vez de 12px). .nav-item/.chip/.hueco-btn/.date-nav
+   son <button> pero funcionan como pestañas/filtros, no como CTA —
+   se resetean más abajo para no heredar este look. */
 button {
-  border: none;
+  border: 2px solid var(--ink);
   border-radius: 999px;
-  padding: 9px 18px;
+  padding: 10px 20px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   background: var(--accent);
   color: var(--accent-ink);
-  transition: opacity 0.15s ease;
+  box-shadow: 0 3px 0 var(--ink);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   font-family: inherit;
 }
 
-button:hover { opacity: 0.9; }
+button::before {
+  content: "";
+  position: absolute;
+  width: 40%;
+  height: 140%;
+  background: var(--detail);
+  opacity: 0.55;
+  top: 50%;
+  left: 50%;
+  transform: skewX(-20deg) translate(-350%, -50%);
+  transition: transform 0.45s ease;
+  pointer-events: none;
+}
+
+button:hover::before { transform: skewX(-20deg) translate(150%, -50%); }
+
+button:active { transform: scale(0.94); }
 
 button.secondary {
   background: var(--panel);
   color: var(--text);
-  border: 1px solid var(--border);
+  border-color: var(--border);
+  box-shadow: 0 3px 0 var(--border);
 }
 
 button.dark {
@@ -85,14 +111,40 @@ button.dark {
 }
 
 button.danger {
-  background: transparent;
+  background: var(--panel);
   color: var(--bloqueado);
-  border: 1px solid #f0c3b6;
+  border-color: var(--bloqueado);
+  box-shadow: 0 3px 0 var(--bloqueado);
 }
 
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+}
+button:disabled::before { display: none; }
+
+/* Pestañas/filtros/chips: son <button> pero no CTAs — vuelven al look
+   plano de antes, sin borde grueso, sombra ni barrido. */
+.nav-item,
+.chip,
+.hueco-btn,
+.date-nav button {
+  border: none;
+  box-shadow: none;
+  overflow: visible;
+}
+.nav-item::before,
+.chip::before,
+.hueco-btn::before,
+.date-nav button::before {
+  content: none;
+}
+.nav-item:active,
+.chip:active,
+.hueco-btn:active,
+.date-nav button:active {
+  transform: none;
 }
 
 .hint {
@@ -393,6 +445,42 @@ button:disabled {
   color: var(--text-muted);
   font-size: 14px;
   margin: 0 0 18px;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    flex-direction: column;
+    min-height: auto;
+  }
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .sidebar-comercio { margin-top: -6px; }
+  .sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+  }
+  .nav-item {
+    width: auto;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .sidebar-footer {
+    margin-top: 0;
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .sidebar-plan { flex: 1; }
+  .sidebar-footer > .secondary { flex-shrink: 0; align-self: center; }
+  .content {
+    padding: 18px 16px 40px;
+  }
 }
 
 /* ------------------------------------------------------------ */
@@ -708,29 +796,62 @@ button:disabled {
 }
 .dia-row:last-child { border-bottom: none; }
 
-.switch { position: relative; width: 40px; height: 23px; flex-shrink: 0; display: inline-block; }
+/* Switch estilo Uiverse.io (by Voxybuns), recoloreado con la paleta
+   de la marca: track celeste cuando está apagado, amarillo cuando
+   está prendido, contorno en --ink (#243e4b, no negro puro). */
+.switch {
+  --switch_width: 2.6em;
+  --switch_height: 1.3em;
+  --track_off: var(--panel-2);
+  --track_on: var(--detail);
+  --thumb_color: #fff;
+  --outline_color: var(--ink);
+  font-size: 18px;
+  position: relative;
+  display: inline-block;
+  width: var(--switch_width);
+  height: var(--switch_height);
+  flex-shrink: 0;
+}
 .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
 .switch .slider {
+  box-sizing: border-box;
+  border: 2px solid var(--outline_color);
   position: absolute;
   inset: 0;
-  background: var(--border);
-  border-radius: 999px;
+  background: var(--track_off);
+  border-radius: var(--switch_height);
   cursor: pointer;
   transition: 0.15s;
 }
+.switch input:checked + .slider { background: var(--track_on); }
 .switch .slider::before {
+  box-sizing: border-box;
   content: "";
   position: absolute;
-  width: 17px;
-  height: 17px;
-  left: 3px;
-  top: 3px;
-  background: #fff;
+  height: var(--switch_height);
+  width: var(--switch_height);
+  left: -2px;
+  bottom: -2px;
+  border: 2px solid var(--outline_color);
   border-radius: 50%;
+  background: var(--thumb_color);
+  transform: translateY(-0.2em);
+  box-shadow: 0 0.2em 0 var(--outline_color);
   transition: 0.15s;
 }
-.switch input:checked + .slider { background: var(--libre); }
-.switch input:checked + .slider::before { transform: translateX(17px); }
+.switch input:hover + .slider::before {
+  transform: translateY(-0.3em);
+  box-shadow: 0 0.3em 0 var(--outline_color);
+}
+.switch input:checked + .slider::before {
+  transform: translateX(calc(var(--switch_width) - var(--switch_height))) translateY(-0.2em);
+}
+.switch input:hover:checked + .slider::before {
+  transform: translateX(calc(var(--switch_width) - var(--switch_height))) translateY(-0.3em);
+  box-shadow: 0 0.3em 0 var(--outline_color);
+}
+.switch input:focus-visible + .slider { box-shadow: 0 0 0 2px var(--detail); }
 
 .dia-row .dia-nombre { font-weight: 700; width: 90px; flex-shrink: 0; }
 .dia-row .dia-horario { color: var(--text-muted); font-size: 13px; }

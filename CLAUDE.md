@@ -99,6 +99,8 @@ turnos-app/
 ├── migracion_v3.sql       # trial, config de recordatorios, RLS pública para reservar.html
 ├── migracion_v4.sql       # aviso mínimo para reservar desde el link público
 ├── migracion_v5.sql       # color de acento + logo por comercio (bucket "logos" en Storage), para personalizar reservar.html
+├── migracion_v6.sql       # slug (link corto), notificaciones_pendientes (aviso al cliente al cancelar) y teléfono obligatorio al reservar
+├── vercel.json            # rewrite /r/:slug -> /reservar.html?slug=:slug (link corto, ver DEPLOY.md)
 ├── index.html             # LANDING — página de marketing estática (no usa Supabase), es la raíz del sitio; "Entrar" y todos los CTA llevan a app.html
 ├── app.html               # shell de la app logueada (login → agenda)
 ├── style.css              # estilos de la app logueada (sidebar, agenda, modales)
@@ -122,8 +124,9 @@ Google todavía no está conectado.
 
 **Orden de instalación SQL:** `schema.sql` → `migracion_v2.sql` →
 `huecos.sql` → `migracion_v3_enum.sql` (sola, transacción propia) →
-`migracion_v3.sql` → `migracion_v4.sql` → `migracion_v5.sql` (ver
-`SETUP.md`). Todas las migraciones son en caliente: no borran datos.
+`migracion_v3.sql` → `migracion_v4.sql` → `migracion_v5.sql` →
+`migracion_v6.sql` (ver `SETUP.md`). Todas las migraciones son en
+caliente: no borran datos.
 
 ## Cómo correrlo local
 ```bash
@@ -172,11 +175,25 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
       Clavis con el logo/nombre del comercio; si no cargó nada, se ve
       la marca de Clavis por defecto. Deliberadamente acotado a un solo
       color (no un theme completo) para no romper contraste/legibilidad.
-- [x] Recordatorios de WhatsApp (`server/index.js`, whatsapp-web.js — no
-      oficial, riesgo de baneo, elegido a propósito para validar rápido
-      antes de la API oficial de Meta): manda un WhatsApp X horas antes
-      del turno según `peluqueros.recordatorio_offset_horas`
-      (configurable desde Horarios). Solo manda, no procesa respuestas.
+- [x] Recordatorios y avisos de WhatsApp (`server/index.js`,
+      whatsapp-web.js — no oficial, riesgo de baneo, elegido a propósito
+      para validar rápido antes de la API oficial de Meta): manda un
+      WhatsApp X horas antes del turno según
+      `peluqueros.recordatorio_offset_horas` (configurable desde
+      Horarios), y otro cuando el comercio cancela un turno desde la
+      Agenda (`cancelarTurnoConAviso` en `app.js` encola la fila en
+      `notificaciones_pendientes` — ver `migracion_v6.sql` — porque el
+      turno se borra al cancelarse, no queda de dónde sacar después el
+      teléfono). Solo manda, no procesa respuestas.
+- [x] Link corto para compartir (`migracion_v6.sql` + `vercel.json`):
+      cada comercio elige un slug desde Horarios → "Marca del link
+      público" (ej. `clavis.ar/r/peluqueria-lucia`) en vez del
+      `reservar.html?c=<uuid>` de siempre (que sigue funcionando si no
+      configuró slug). El rewrite de `vercel.json` solo aplica una vez
+      deployado — en local se sigue viendo el link largo.
+- [x] Teléfono obligatorio al reservar desde el link público
+      (`migracion_v6.sql` endurece `turnos_public_insert`, antes solo
+      exigía el nombre) — hace falta para poder avisar cancelaciones.
 - [x] Cobro real con Mercado Pago (`server/payments.js`): pago único de
       $14.900 (plan "Comercio") vía Checkout Pro. El botón "Activar
       plan" del sidebar crea una preferencia y redirige; el webhook

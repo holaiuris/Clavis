@@ -916,9 +916,28 @@ function renderTurnoDetailModal(turno) {
     mutateTurno(() => db.from("turnos").update({ asistio: false }).eq("id", turno.id))
   );
   document.getElementById("turno-reprogramar").addEventListener("click", () => openReprogramarModal(turno));
-  document.getElementById("turno-liberar").addEventListener("click", () =>
-    mutateTurno(() => db.from("turnos").delete().eq("id", turno.id))
-  );
+  document.getElementById("turno-liberar").addEventListener("click", () => cancelarTurnoConAviso(turno));
+}
+
+// Al cancelar un turno con cliente, encolamos un aviso de WhatsApp
+// ANTES de borrar la fila (el turno deja de existir apenas se libera
+// el hueco — ver "Decisión de diseño clave" en CLAUDE.md — así que no
+// hay otro lugar de donde sacar después el teléfono/horario). Es
+// best-effort: si falla el insert de la notificación no bloqueamos la
+// cancelación en sí, solo no va a salir el aviso.
+async function cancelarTurnoConAviso(turno) {
+  if (turno.cliente_telefono) {
+    const { error: avisoError } = await db.from("notificaciones_pendientes").insert({
+      peluquero_id: state.peluquero.id,
+      tipo: "cancelacion",
+      cliente_nombre: turno.cliente_nombre,
+      cliente_telefono: turno.cliente_telefono,
+      fecha: turno.fecha,
+      hora_inicio: turno.hora_inicio,
+    });
+    if (avisoError) console.error("No se pudo encolar el aviso de cancelación:", avisoError);
+  }
+  await mutateTurno(() => db.from("turnos").delete().eq("id", turno.id));
 }
 
 // Log de actividad con datos reales (nunca inventados): cuándo se
@@ -1322,7 +1341,9 @@ function renderHorariosView() {
     return `<button type="button" class="chip ${activo ? "active" : ""}" data-aviso="${valor}">${label}</button>`;
   };
 
-  const linkReservas = new URL(`reservar.html?c=${state.peluquero.id}`, location.href).href;
+  const linkReservas = state.peluquero.slug
+    ? new URL(`r/${state.peluquero.slug}`, location.href).href
+    : new URL(`reservar.html?c=${state.peluquero.id}`, location.href).href;
 
   return `
     <div class="content-header">
@@ -1380,6 +1401,14 @@ function renderHorariosView() {
             <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Nombre del comercio</label>
             <input type="text" id="marca-nombre" value="${escapeHtml(state.peluquero.nombre)}" required />
           </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Link corto (opcional)</label>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="hint" style="white-space:nowrap;">${escapeHtml(new URL("r/", location.href).href)}</span>
+              <input type="text" id="marca-slug" value="${escapeHtml(state.peluquero.slug || "")}" placeholder="mi-comercio" pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Minúsculas, números y guiones — sin espacios ni acentos" style="flex:1; width:auto; min-width:0;" />
+            </div>
+            <p class="hint" style="margin-top:4px;">Reemplaza el link largo de arriba por uno corto y fácil de compartir. Solo funciona una vez deployado (ver DEPLOY.md) — en local seguís viendo el link largo.</p>
+          </div>
           <div style="display:flex; gap:16px; align-items:flex-end; margin-bottom:12px; flex-wrap:wrap;">
             <div>
               <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Color de acento</label>
@@ -1434,10 +1463,11 @@ function renderHorariosView() {
 function wireHorariosView() {
   const errorEl = document.getElementById("horarios-error");
 
+  // Los tres son independientes entre sí (cada uno pide sus propios
+  // datos a Supabase) — en paralelo en vez de en serie para que
+  // tocar un toggle/chip no se sienta con delay.
   const reload = async () => {
-    await withLoading(loadConfiguracion);
-    await withLoading(loadHorariosWeekCounts);
-    await withLoading(loadTablero);
+    await Promise.all([withLoading(loadConfiguracion), withLoading(loadHorariosWeekCounts), withLoading(loadTablero)]);
     renderApp();
   };
 
@@ -1500,9 +1530,14 @@ function wireHorariosView() {
     marcaError.textContent = "";
     const nombre = document.getElementById("marca-nombre").value.trim();
     const color = document.getElementById("marca-color").value;
+    const slugRaw = document.getElementById("marca-slug").value.trim().toLowerCase();
     const archivo = document.getElementById("marca-logo-input").files[0];
     if (!nombre) {
       marcaError.textContent = "El nombre del comercio no puede quedar vacío.";
+      return;
+    }
+    if (slugRaw && !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slugRaw)) {
+      marcaError.textContent = "El link corto solo puede tener minúsculas, números y guiones (ej. mi-comercio).";
       return;
     }
     if (archivo && archivo.size > 2 * 1024 * 1024) {
@@ -1511,7 +1546,7 @@ function wireHorariosView() {
     }
     btnGuardarMarca.disabled = true;
     try {
-      const cambios = { nombre, color_acento: color };
+      const cambios = { nombre, color_acento: color, slug: slugRaw || null };
       if (archivo) {
         const ext = archivo.name.split(".").pop().toLowerCase();
         const ruta = `${state.peluquero.id}/logo.${ext}`;
@@ -1528,7 +1563,8 @@ function wireHorariosView() {
       renderApp();
     } catch (err) {
       console.error(err);
-      marcaError.textContent = err.message || "No se pudo guardar";
+      marcaError.textContent =
+        err.code === "23505" ? "Ese link corto ya lo está usando otro comercio — probá con otro." : err.message || "No se pudo guardar";
       btnGuardarMarca.disabled = false;
     }
   });

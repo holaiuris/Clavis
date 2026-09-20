@@ -53,15 +53,18 @@ git push -u origin main
    conectarse a Supabase).
 4. **Output Directory:** `.` (la raíz del repo — no hay carpeta
    `dist`, se sirve todo tal cual).
-5. **Environment Variables** — cargar estas tres (los mismos valores
+5. El link corto (`clavis.ar/r/<slug>`) ya viene resuelto por
+   `vercel.json` — Vercel lo detecta solo, no hay que configurar nada
+   a mano para eso.
+6. **Environment Variables** — cargar estas tres (los mismos valores
    que ya tenés en tu `config.js` local, ver `SETUP.md` paso 4):
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY` (la *anon* key — es pública por diseño, está
      protegida por RLS, no pasa nada si viaja al navegador)
    - `PAYMENTS_API_URL` → dejalo en blanco por ahora, lo completás en
      el paso 3 una vez que sepas la URL de Railway.
-6. **Deploy.**
-7. Una vez andando: **Settings → Domains** → agregá `clavis.ar` (y
+7. **Deploy.**
+8. Una vez andando: **Settings → Domains** → agregá `clavis.ar` (y
    `www.clavis.ar` si lo querés) → Vercel te da los registros DNS
    (normalmente un `A` a su IP o un `CNAME`) → cargalos donde
    compraste el dominio. Puede tardar hasta un rato en propagar.

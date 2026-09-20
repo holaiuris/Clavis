@@ -1,5 +1,8 @@
 // ============================================================
-// Link público de reservas (reservar.html?c=<peluquero_id>).
+// Link público de reservas. Dos formas de identificar el comercio:
+//   - reservar.html?c=<peluquero_id> (el link "de toda la vida", uuid)
+//   - reservar.html?slug=<slug> (lo que resuelve /r/<slug> vía rewrite
+//     del hosting, ver vercel.json/DEPLOY.md — más lindo para compartir)
 // Sin login: un cliente elige profesional, servicio y horario, y
 // reserva directo. Ve solo lo que las políticas públicas permiten
 // (ver migracion_v3.sql) — nunca datos de otros clientes.
@@ -8,8 +11,11 @@
 const db = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 const app = document.getElementById("reservar-app");
 
+const urlParams = new URLSearchParams(location.search);
+
 const state = {
-  comercioId: new URLSearchParams(location.search).get("c"),
+  comercioId: urlParams.get("c"),
+  slug: urlParams.get("slug"),
   peluquero: null,
   profesionales: [],
   servicios: [],
@@ -62,27 +68,32 @@ function aplicarMarca(peluquero) {
 }
 
 async function init() {
-  if (!state.comercioId) {
+  if (!state.comercioId && !state.slug) {
     app.innerHTML = `<h1>Link incompleto</h1><p class="hint">Este link no tiene el comercio identificado. Pedile al negocio que te pase el link completo.</p>`;
     return;
   }
 
   try {
-    const [peluqueroRes, profesionalesRes, serviciosRes] = await Promise.all([
-      db.from("peluqueros").select("id, nombre, aviso_minimo_horas, color_acento, logo_url").eq("id", state.comercioId).maybeSingle(),
-      db.from("profesionales").select("*").eq("peluquero_id", state.comercioId).eq("activo", true).order("creado_en"),
-      db.from("servicios").select("*").eq("peluquero_id", state.comercioId).eq("activo", true).order("nombre"),
-    ]);
+    const columnas = "id, nombre, aviso_minimo_horas, color_acento, logo_url";
+    const peluqueroRes = state.slug
+      ? await db.from("peluqueros").select(columnas).eq("slug", state.slug).maybeSingle()
+      : await db.from("peluqueros").select(columnas).eq("id", state.comercioId).maybeSingle();
     if (peluqueroRes.error) throw peluqueroRes.error;
-    if (profesionalesRes.error) throw profesionalesRes.error;
-    if (serviciosRes.error) throw serviciosRes.error;
 
     if (!peluqueroRes.data) {
       app.innerHTML = `<h1>No encontramos este comercio</h1><p class="hint">Puede que el link esté mal copiado.</p>`;
       return;
     }
     state.peluquero = peluqueroRes.data;
+    state.comercioId = state.peluquero.id;
     aplicarMarca(state.peluquero);
+
+    const [profesionalesRes, serviciosRes] = await Promise.all([
+      db.from("profesionales").select("*").eq("peluquero_id", state.comercioId).eq("activo", true).order("creado_en"),
+      db.from("servicios").select("*").eq("peluquero_id", state.comercioId).eq("activo", true).order("nombre"),
+    ]);
+    if (profesionalesRes.error) throw profesionalesRes.error;
+    if (serviciosRes.error) throw serviciosRes.error;
     state.profesionales = profesionalesRes.data;
     state.servicios = serviciosRes.data;
     state.profesionalId = state.profesionales[0] ? state.profesionales[0].id : null;
@@ -212,8 +223,8 @@ function renderConfirmacion() {
         <input type="text" id="cli-nombre" required />
       </div>
       <div>
-        <label>Tu teléfono (opcional)</label>
-        <input type="tel" id="cli-telefono" />
+        <label>Tu teléfono</label>
+        <input type="tel" id="cli-telefono" required placeholder="Para avisarte si el comercio cancela o mueve tu turno" />
       </div>
       <div class="actions">
         <button type="button" class="secondary" id="cli-volver">Volver</button>
@@ -244,7 +255,7 @@ function renderConfirmacion() {
         estado: "ocupado",
         origen: "web",
         cliente_nombre: document.getElementById("cli-nombre").value.trim(),
-        cliente_telefono: document.getElementById("cli-telefono").value.trim() || null,
+        cliente_telefono: document.getElementById("cli-telefono").value.trim(),
       });
       if (error) throw error;
       renderExito(fechaLarga);

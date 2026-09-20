@@ -62,11 +62,48 @@
   .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; }
   .brand-mark::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #fff; }
   .hero-links { display: flex; align-items: center; gap: 26px; font-weight: 600; font-size: 15px; color: var(--text-muted); }
-  .btn { display: inline-block; border-radius: 999px; padding: 12px 22px; font-weight: 700; font-size: 15px; cursor: pointer; border: none; }
+  /* Mismo botón neubrutalista que el resto de la app (ver style.css):
+     borde grueso + sombra sólida + barrido amarillo al pasar el mouse. */
+  .btn {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 12px 22px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    border: 2px solid var(--ink);
+    box-shadow: 0 3px 0 var(--ink);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn::before {
+    content: "";
+    position: absolute;
+    width: 40%;
+    height: 140%;
+    background: var(--detail);
+    opacity: 0.55;
+    top: 50%;
+    left: 50%;
+    transform: skewX(-20deg) translate(-350%, -50%);
+    transition: transform 0.45s ease;
+    pointer-events: none;
+  }
+  .btn:hover::before { transform: skewX(-20deg) translate(150%, -50%); }
+  .btn:active { transform: scale(0.94); }
   .btn-dark { background: var(--ink); color: #fff; }
   .btn-accent { background: var(--accent); color: #fff; }
-  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
-  .btn-outline-light { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.5); }
+  .btn-outline { background: transparent; color: var(--text); border-color: var(--border); box-shadow: 0 3px 0 var(--border); }
+  .btn-outline-light { background: transparent; color: #fff; border-color: rgba(255,255,255,0.5); box-shadow: none; }
+  /* Botones blancos sobre fondo oscuro (plan destacado, banner de
+     trial): el borde/sombra en --ink quedaría invisible ahí — en
+     blanco para que se sigan viendo. */
+  .plan.featured .btn,
+  .trial-banner .btn {
+    border-color: #fff;
+    box-shadow: 0 3px 0 #fff;
+  }
 
   .eyebrow { color: var(--accent); font-weight: 700; font-size: 12.5px; letter-spacing: 0.06em; margin-bottom: 14px; }
   .eyebrow::before { content: "● "; }

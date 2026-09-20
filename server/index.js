@@ -49,9 +49,11 @@ whatsapp.on("qr", (qr) => {
 });
 
 whatsapp.on("ready", () => {
-  console.log(`WhatsApp conectado. Revisando recordatorios cada ${CHECK_INTERVAL_MINUTES} minuto(s).`);
+  console.log(`WhatsApp conectado. Revisando recordatorios y avisos cada ${CHECK_INTERVAL_MINUTES} minuto(s).`);
   enviarRecordatoriosPendientes();
+  enviarAvisosCancelacion();
   setInterval(enviarRecordatoriosPendientes, CHECK_INTERVAL_MINUTES * 60 * 1000);
+  setInterval(enviarAvisosCancelacion, CHECK_INTERVAL_MINUTES * 60 * 1000);
 });
 
 whatsapp.on("auth_failure", (msg) => console.error("Fallo de autenticación de WhatsApp:", msg));
@@ -122,6 +124,46 @@ async function enviarRecordatoriosPendientes() {
       console.log("Recordatorio enviado a", turno.cliente_nombre, "-", turno.fecha, hora);
     } catch (err) {
       console.error("No se pudo enviar recordatorio a", turno.cliente_telefono, ":", err.message);
+    }
+  }
+}
+
+// Cuando el comercio cancela un turno desde la Agenda, app.js encola
+// una fila acá (ver migracion_v6.sql) en vez de mandar el WhatsApp
+// directo desde el navegador — mandar mensajes necesita esta sesión
+// de WhatsApp, que solo vive en este server.
+async function enviarAvisosCancelacion() {
+  const { data: avisos, error } = await supabase
+    .from("notificaciones_pendientes")
+    .select("id, cliente_nombre, cliente_telefono, fecha, hora_inicio, peluqueros(nombre)")
+    .eq("tipo", "cancelacion")
+    .eq("enviado", false);
+
+  if (error) {
+    console.error("Error consultando notificaciones_pendientes:", error.message);
+    return;
+  }
+
+  for (const aviso of avisos) {
+    const nombreComercio = aviso.peluqueros ? aviso.peluqueros.nombre : "el comercio";
+    const hora = aviso.hora_inicio.slice(0, 5);
+    const fechaLarga = new Date(`${aviso.fecha}T${aviso.hora_inicio}`).toLocaleDateString("es-AR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+
+    const mensaje =
+      `Hola ${aviso.cliente_nombre || ""}! Te avisamos que ${nombreComercio} canceló tu turno ` +
+      `del ${fechaLarga} a las ${hora}. Cualquier consulta, respondé este mensaje.`;
+
+    try {
+      const chatId = normalizarTelefono(aviso.cliente_telefono);
+      await whatsapp.sendMessage(chatId, mensaje);
+      await supabase.from("notificaciones_pendientes").update({ enviado: true }).eq("id", aviso.id);
+      console.log("Aviso de cancelación enviado a", aviso.cliente_nombre, "-", aviso.fecha, hora);
+    } catch (err) {
+      console.error("No se pudo enviar aviso de cancelación a", aviso.cliente_telefono, ":", err.message);
     }
   }
 }

@@ -35,6 +35,11 @@ consulta):**
    de acento y logo para personalizar `reservar.html`, más el bucket de
    Storage `logos` donde se guardan los logos subidos desde
    Configuración.
+9. Pegar el contenido completo de `migracion_v6.sql` → **Run**. Slug
+   para el link corto (`/r/<slug>`), la tabla `notificaciones_pendientes`
+   que usa `server/index.js` para avisarle al cliente cuando el comercio
+   cancela un turno, y teléfono obligatorio al reservar desde el link
+   público (antes era opcional).
 
 Si tu proyecto ya tenía datos cargados de una instalación anterior, no
 hace falta borrar nada: corré igual los pasos que falten sobre lo que
