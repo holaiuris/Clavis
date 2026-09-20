@@ -861,6 +861,11 @@ function wireAgendaView() {
     });
   });
 
+  const btnVerFicha = document.querySelector("[data-ver-ficha]");
+  if (btnVerFicha && btnVerFicha.dataset.verFicha) {
+    btnVerFicha.addEventListener("click", () => openClienteDetailModal(btnVerFicha.dataset.verFicha));
+  }
+
   const onNuevoTurno = () => {
     if (!state.huecos.length) {
       openModal(`
@@ -1266,7 +1271,14 @@ function wireClientesView() {
 }
 
 async function openClienteDetailModal(clienteId) {
-  const cliente = state.clientes.find((c) => c.id === clienteId);
+  // state.clientes solo se carga al entrar a la pestaña Clientes — si nos
+  // llaman desde otro lado (ej. "Ver ficha" del próximo turno en Agenda)
+  // sin haber pasado por ahí, buscamos el cliente puntual en la base.
+  let cliente = state.clientes.find((c) => c.id === clienteId);
+  if (!cliente) {
+    const { data } = await db.from("clientes").select("*").eq("id", clienteId).maybeSingle();
+    cliente = data;
+  }
   if (!cliente) return;
 
   openModal(`
