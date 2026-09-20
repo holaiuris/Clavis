@@ -1,0 +1,8 @@
+{
+  "name": "clavis",
+  "private": true,
+  "description": "Frontend estático de Clavis (sin framework, sin bundler). Este package.json solo existe para que el hosting (Vercel/Netlify) tenga un Build Command — ver DEPLOY.md.",
+  "scripts": {
+    "build": "node scripts/gen-config.js"
+  }
+}

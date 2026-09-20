@@ -1,0 +1,14 @@
+# Credenciales reales — cada quien completa la suya a partir de
+# config.template.js / server/.env.example (ver SETUP.md).
+config.js
+server/.env
+
+# Node
+server/node_modules/
+
+# Sesión de WhatsApp (whatsapp-web.js) — se regenera escaneando el QR.
+server/wwebjs_auth/
+server/wwebjs_cache/
+
+# SO
+.DS_Store
