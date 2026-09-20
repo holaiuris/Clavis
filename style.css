@@ -58,93 +58,85 @@ select:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="te
   box-shadow: 0 0 0 3px rgba(110, 171, 199, 0.18);
 }
 
-/* Botón estilo Uiverse.io (by Mike11jr), recoloreado con la paleta de
-   la marca: el barrido diagonal en --detail (amarillo) al pasar el
-   mouse, sombra sólida en vez de blur, más redondeado que el original
-   (pill completo en vez de 12px). .nav-item/.chip/.hueco-btn/.date-nav
-   son <button> pero funcionan como pestañas/filtros, no como CTA —
-   se resetean más abajo para no heredar este look. */
+/* Botón estilo Uiverse.io (by cssbuttons-io), recoloreado con la
+   paleta de la marca: un "escalón" sólido (más oscuro, ::after) se
+   asoma debajo del botón y desaparece al hacer click, simulando que
+   se hunde. .nav-item/.chip/.hueco-btn/.date-nav son <button> pero
+   funcionan como pestañas/filtros, no como CTA — se resetean más
+   abajo para no heredar este look. */
 button {
-  border: 2px solid var(--ink);
-  border-radius: 999px;
-  padding: 10px 20px;
+  appearance: button;
+  background-color: var(--accent);
+  border: solid transparent;
+  border-radius: 16px;
+  border-width: 0 0 4px;
+  box-sizing: border-box;
+  color: var(--accent-ink);
+  cursor: pointer;
+  display: inline-block;
   font-size: 14px;
   font-weight: 700;
-  cursor: pointer;
-  background: var(--accent);
-  color: var(--accent-ink);
-  box-shadow: 0 3px 0 var(--ink);
+  line-height: 20px;
+  margin: 0;
+  outline: none;
+  overflow: visible;
+  padding: 10px 20px;
   position: relative;
-  overflow: hidden;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  text-align: center;
+  transition: filter 0.15s ease, border-width 0.1s ease, padding-bottom 0.1s ease;
   font-family: inherit;
 }
 
-button::before {
+button::after {
+  background-color: color-mix(in srgb, var(--accent) 72%, black);
+  border-radius: 16px;
+  bottom: -4px;
   content: "";
+  left: 0;
   position: absolute;
-  width: 40%;
-  height: 140%;
-  background: var(--detail);
-  opacity: 0.55;
-  top: 50%;
-  left: 50%;
-  transform: skewX(-20deg) translate(-350%, -50%);
-  transition: transform 0.45s ease;
-  pointer-events: none;
+  right: 0;
+  top: 0;
+  z-index: -1;
 }
 
-button:hover::before { transform: skewX(-20deg) translate(150%, -50%); }
+button:hover:not(:disabled) { filter: brightness(1.06); }
 
-button:active { transform: scale(0.94); }
+button:active:not(:disabled) {
+  border-width: 0 0 0;
+  padding-bottom: 14px;
+}
 
 button.secondary {
-  background: var(--panel);
+  background-color: var(--panel);
   color: var(--text);
-  border-color: var(--border);
-  box-shadow: 0 3px 0 var(--border);
 }
+button.secondary::after { background-color: var(--border); }
 
-button.dark {
-  background: var(--ink);
-  color: #fff;
-}
+button.dark { background-color: var(--ink); color: #fff; }
+button.dark::after { background-color: color-mix(in srgb, var(--ink) 70%, black); }
 
-button.danger {
-  background: var(--panel);
-  color: var(--bloqueado);
-  border-color: var(--bloqueado);
-  box-shadow: 0 3px 0 var(--bloqueado);
-}
+button.danger { background-color: var(--bloqueado); color: #fff; }
+button.danger::after { background-color: color-mix(in srgb, var(--bloqueado) 70%, black); }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
+  filter: none;
 }
-button:disabled::before { display: none; }
 
 /* Pestañas/filtros/chips: son <button> pero no CTAs — vuelven al look
-   plano de antes, sin borde grueso, sombra ni barrido. */
+   plano de antes, sin escalón ni efecto de hundirse. */
 .nav-item,
 .chip,
 .hueco-btn,
 .date-nav button {
   border: none;
-  box-shadow: none;
-  overflow: visible;
 }
-.nav-item::before,
-.chip::before,
-.hueco-btn::before,
-.date-nav button::before {
+.nav-item::after,
+.chip::after,
+.hueco-btn::after,
+.date-nav button::after {
   content: none;
-}
-.nav-item:active,
-.chip:active,
-.hueco-btn:active,
-.date-nav button:active {
-  transform: none;
 }
 
 .hint {
