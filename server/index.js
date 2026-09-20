@@ -139,20 +139,24 @@ async function enviarRecordatoriosPendientes() {
   }
 }
 
-// notificaciones_pendientes tiene dos tipos, con destinatarios
-// distintos:
+// notificaciones_pendientes tiene tres tipos, con destinatarios y
+// mensajes distintos:
 //   - "cancelacion": el COMERCIO canceló desde la Agenda (app.js la
 //     encola, ver migracion_v6.sql) — se avisa al CLIENTE.
 //   - "cliente_cancelo": el CLIENTE canceló desde su link (la encola
 //     cancelar_turno_cliente(), ver migracion_v10.sql) — se avisa al
 //     COMERCIO (peluqueros.telefono), al revés que el otro caso.
+//   - "hueco_liberado": alguien anotado en la lista de espera de ese
+//     día (ver migracion_v11.sql) — se avisa al CLIENTE que se anotó,
+//     sin hora puntual (es "se liberó algo ese día", no un horario
+//     exacto — ver el comentario en avisar_lista_espera()).
 // Mandar el WhatsApp necesita esta sesión, que solo vive acá — por
-// eso no sale directo del navegador en ninguno de los dos casos.
+// eso no sale directo del navegador en ninguno de los tres casos.
 async function enviarAvisosCancelacion() {
   const { data: avisos, error } = await supabase
     .from("notificaciones_pendientes")
-    .select("id, tipo, cliente_nombre, cliente_telefono, fecha, hora_inicio, peluqueros(nombre, telefono)")
-    .in("tipo", ["cancelacion", "cliente_cancelo"])
+    .select("id, tipo, cliente_nombre, cliente_telefono, fecha, hora_inicio, peluquero_id, peluqueros(nombre, telefono)")
+    .in("tipo", ["cancelacion", "cliente_cancelo", "hueco_liberado"])
     .eq("enviado", false);
 
   if (error) {
@@ -180,16 +184,25 @@ async function enviarAvisosCancelacion() {
       continue;
     }
 
-    const mensaje = esAvisoAlComercio
-      ? `Tu cliente ${aviso.cliente_nombre || "alguien"} canceló su turno del ${fechaLarga} a las ${hora} desde su link.`
-      : `Hola ${aviso.cliente_nombre || ""}! Te avisamos que ${nombreComercio} canceló tu turno ` +
+    let mensaje;
+    if (esAvisoAlComercio) {
+      mensaje = `Tu cliente ${aviso.cliente_nombre || "alguien"} canceló su turno del ${fechaLarga} a las ${hora} desde su link.`;
+    } else if (aviso.tipo === "hueco_liberado") {
+      const linkReservar = `${APP_URL}/reservar.html?c=${aviso.peluquero_id}`;
+      mensaje =
+        `Hola ${aviso.cliente_nombre || ""}! Se liberó un hueco en ${nombreComercio} para el ${fechaLarga}. ` +
+        `Entrá a reservar antes de que se ocupe: ${linkReservar}`;
+    } else {
+      mensaje =
+        `Hola ${aviso.cliente_nombre || ""}! Te avisamos que ${nombreComercio} canceló tu turno ` +
         `del ${fechaLarga} a las ${hora}. Cualquier consulta, respondé este mensaje.`;
+    }
 
     try {
       const chatId = normalizarTelefono(telefonoDestino);
       await whatsapp.sendMessage(chatId, mensaje);
       await supabase.from("notificaciones_pendientes").update({ enviado: true }).eq("id", aviso.id);
-      console.log(esAvisoAlComercio ? "Aviso de cancelación de cliente enviado al comercio" : "Aviso de cancelación enviado al cliente", "-", aviso.fecha, hora);
+      console.log("Notificación", aviso.tipo, "enviada -", aviso.fecha, hora);
     } catch (err) {
       console.error("No se pudo enviar aviso de cancelación a", telefonoDestino, ":", err.message);
     }

@@ -61,6 +61,11 @@ consulta):**
     que el cliente pueda ver y cancelar su propio turno desde
     `reservar.html?turno=<id>` — el link que ahora manda la
     confirmación de WhatsApp.
+14. Pegar el contenido completo de `migracion_v11.sql` → **Run**. Tabla
+    `lista_espera` + función `avisar_lista_espera` — el cliente se
+    anota desde `reservar.html` cuando no hay huecos, y se le avisa
+    por WhatsApp si se libera algo ese día (al cancelar, desde
+    cualquiera de los dos caminos: comercio o cliente).
 
 Si tu proyecto ya tenía datos cargados de una instalación anterior, no
 hace falta borrar nada: corré igual los pasos que falten sobre lo que

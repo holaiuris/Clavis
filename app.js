@@ -31,6 +31,7 @@ const state = {
   clientesQuery: "",
   metricas: null,
   horariosWeekCounts: {},
+  listaEspera: [],
   loading: false,
   error: null,
 };
@@ -514,6 +515,7 @@ async function goToView(view) {
   if (view === "horarios") {
     renderApp();
     await withLoading(loadHorariosWeekCounts);
+    await withLoading(loadListaEspera);
     renderApp();
     return;
   }
@@ -955,6 +957,14 @@ async function cancelarTurnoConAviso(turno) {
     if (avisoError) console.error("No se pudo encolar el aviso de cancelación:", avisoError);
   }
   await mutateTurno(() => db.from("turnos").delete().eq("id", turno.id));
+  // Best-effort: si alguien está en la lista de espera para este día
+  // (ver migracion_v11.sql), avisarle que se liberó algo. No bloquea
+  // la cancelación en sí si falla.
+  const { error: esperaError } = await db.rpc("avisar_lista_espera", {
+    p_peluquero_id: state.peluquero.id,
+    p_fecha: turno.fecha,
+  });
+  if (esperaError) console.error("No se pudo avisar a la lista de espera:", esperaError);
 }
 
 // Log de actividad con datos reales (nunca inventados): cuándo se
@@ -1431,6 +1441,16 @@ async function loadHorariosWeekCounts() {
   state.horariosWeekCounts = counts;
 }
 
+async function loadListaEspera() {
+  const { data, error } = await db
+    .from("lista_espera")
+    .select("*, servicios(nombre), profesionales(nombre)")
+    .eq("notificado", false)
+    .order("fecha");
+  if (error) throw error;
+  state.listaEspera = data;
+}
+
 function renderHorariosView() {
   const diasRows = DIAS_ORDEN.map((dia) => {
     const franjas = state.horarios.filter((h) => h.dia_semana === dia);
@@ -1528,7 +1548,30 @@ function renderHorariosView() {
         <div class="metrics-card">
           <h4>Feriados y licencias</h4>
           <p class="sub">Bloqueá fechas y Clavis deja de ofrecerlas al instante.</p>
-          <button type="button" id="btn-bloquear-fechas">Bloquear fechas</button>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" id="btn-bloquear-fechas">Bloquear fechas</button>
+            <button type="button" class="secondary" id="btn-bloqueo-recurrente">Bloqueo repetido</button>
+          </div>
+        </div>
+
+        <div class="metrics-card">
+          <h4>Lista de espera</h4>
+          <p class="sub">Se anotan desde el link público cuando no hay huecos para una fecha. Les avisamos solos apenas se libere algo ese día.</p>
+          <div class="row-list">
+            ${
+              state.listaEspera.length
+                ? state.listaEspera
+                    .map(
+                      (le) => `
+              <div class="row-item">
+                <span class="grow">${escapeHtml(le.cliente_nombre)} — ${le.servicios ? escapeHtml(le.servicios.nombre) : "—"}${le.profesionales ? " con " + escapeHtml(le.profesionales.nombre) : ""}</span>
+                <span class="hint" style="margin:0;">${new Date(le.fecha + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })}</span>
+              </div>`
+                    )
+                    .join("")
+                : `<span class="hint">Nadie anotado por ahora.</span>`
+            }
+          </div>
         </div>
 
         <div class="metrics-card">
@@ -1635,6 +1678,9 @@ function wireHorariosView() {
 
   const btnBloquear = document.getElementById("btn-bloquear-fechas");
   if (btnBloquear) btnBloquear.addEventListener("click", openBloquearFechasModal);
+
+  const btnBloqueoRecurrente = document.getElementById("btn-bloqueo-recurrente");
+  if (btnBloqueoRecurrente) btnBloqueoRecurrente.addEventListener("click", openBloqueoRecurrenteModal);
 
   document.querySelectorAll("[data-recordatorio]").forEach((chip) => {
     chip.addEventListener("click", async () => {
@@ -1955,6 +2001,120 @@ function openBloquearFechasModal() {
       console.error(err);
       errorEl.textContent =
         err.code === "23P01" ? "Alguno de esos días ya tiene turnos que se solapan." : err.message || "No se pudo bloquear";
+      submitBtn.disabled = false;
+    }
+  });
+}
+
+// Bloqueo que se repite semanalmente (ej: "todos los martes al
+// mediodía") hasta una fecha límite. A diferencia de "Bloquear
+// fechas" (que bloquea el día ENTERO, pensado para feriados/licencias),
+// acá se elige un horario puntual dentro del día — mismo mecanismo de
+// fondo: generar una fila 'bloqueado' por ocurrencia e insertarlas
+// juntas, nada de una tabla de "reglas" aparte ni tocar
+// generar_huecos_disponibles.
+function openBloqueoRecurrenteModal() {
+  const profesionalesOptions = ['<option value="todos">Todos los profesionales</option>']
+    .concat(state.profesionales.map((p) => `<option value="${p.id}">${escapeHtml(p.nombre)}</option>`))
+    .join("");
+  const diaOptions = DIAS_ORDEN.map((dia) => `<option value="${dia}">${DIAS[dia]}</option>`).join("");
+  const maxHasta = isoDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000));
+
+  openModal(`
+    <h3>Bloqueo repetido</h3>
+    <p class="hint">Bloquea el mismo horario, todas las semanas, hasta la fecha que elijas.</p>
+    <form id="bloqueo-recurrente-form">
+      <div>
+        <label>Profesional</label>
+        <select id="bloqueo-recurrente-profesional">${profesionalesOptions}</select>
+      </div>
+      <div>
+        <label>Día de la semana</label>
+        <select id="bloqueo-recurrente-dia">${diaOptions}</select>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <div style="flex:1;">
+          <label>Desde</label>
+          <input type="time" id="bloqueo-recurrente-inicio" value="12:00" required />
+        </div>
+        <div style="flex:1;">
+          <label>Hasta</label>
+          <input type="time" id="bloqueo-recurrente-fin" value="13:00" required />
+        </div>
+      </div>
+      <div>
+        <label>Repetir hasta</label>
+        <input type="date" id="bloqueo-recurrente-hasta" min="${todayISO()}" max="${maxHasta}" required />
+      </div>
+      <input type="text" id="bloqueo-recurrente-motivo" placeholder="Motivo (ej: Almuerzo, Clase)" />
+      <div class="actions">
+        <button type="button" class="secondary" id="bloqueo-recurrente-cancel">Cancelar</button>
+        <button type="submit">Bloquear</button>
+      </div>
+      <div class="error-msg" id="bloqueo-recurrente-error"></div>
+    </form>
+  `);
+
+  document.getElementById("bloqueo-recurrente-cancel").addEventListener("click", closeModal);
+  document.getElementById("bloqueo-recurrente-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errorEl = document.getElementById("bloqueo-recurrente-error");
+    const submitBtn = e.target.querySelector("button[type=submit]");
+    const profesionalSel = document.getElementById("bloqueo-recurrente-profesional").value;
+    const diaSemana = parseInt(document.getElementById("bloqueo-recurrente-dia").value, 10);
+    const horaInicio = document.getElementById("bloqueo-recurrente-inicio").value;
+    const horaFin = document.getElementById("bloqueo-recurrente-fin").value;
+    const hasta = document.getElementById("bloqueo-recurrente-hasta").value;
+    const motivo = document.getElementById("bloqueo-recurrente-motivo").value.trim() || "Bloqueo repetido";
+
+    if (horaFin <= horaInicio) {
+      errorEl.textContent = 'El horario "hasta" tiene que ser posterior al de "desde".';
+      return;
+    }
+
+    const profesionalesTarget =
+      profesionalSel === "todos" ? state.profesionales : state.profesionales.filter((p) => p.id === profesionalSel);
+
+    // Primera ocurrencia: el próximo día que matchee el día de semana
+    // elegido (puede ser hoy mismo).
+    const primera = new Date();
+    while (primera.getDay() !== diaSemana) primera.setDate(primera.getDate() + 1);
+
+    submitBtn.disabled = true;
+    errorEl.textContent = "";
+    try {
+      const filas = [];
+      for (let d = new Date(primera); isoDate(d) <= hasta; d.setDate(d.getDate() + 7)) {
+        for (const prof of profesionalesTarget) {
+          filas.push({
+            peluquero_id: state.peluquero.id,
+            profesional_id: prof.id,
+            fecha: isoDate(d),
+            hora_inicio: horaInicio,
+            hora_fin: horaFin,
+            estado: "bloqueado",
+            origen: "manual",
+            notas: motivo,
+          });
+        }
+      }
+      if (!filas.length) {
+        errorEl.textContent = "No hay ninguna ocurrencia de ese día antes de la fecha límite.";
+        submitBtn.disabled = false;
+        return;
+      }
+      const { error } = await db.from("turnos").insert(filas);
+      if (error) throw error;
+      closeModal();
+      await withLoading(loadHorariosWeekCounts);
+      await withLoading(loadTablero);
+      renderApp();
+    } catch (err) {
+      console.error(err);
+      errorEl.textContent =
+        err.code === "23P01"
+          ? "Alguna de esas fechas ya tiene un turno que se solapa con ese horario."
+          : err.message || "No se pudo bloquear";
       submitBtn.disabled = false;
     }
   });

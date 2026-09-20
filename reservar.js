@@ -26,6 +26,7 @@ const state = {
   fecha: todayISO(),
   huecos: [],
   huecoElegido: null,
+  listaEsperaOk: false,
   error: null,
 };
 
@@ -217,11 +218,24 @@ function render() {
     })
     .join("");
 
-  const huecosHtml = state.huecos.length
-    ? `<div class="huecos-grid">${state.huecos
-        .map((h) => `<button type="button" class="hueco-btn" data-inicio="${h.hora_inicio}" data-fin="${h.hora_fin}">${hhmm(h.hora_inicio)}</button>`)
-        .join("")}</div>`
-    : `<p class="hint">No hay huecos libres para esa fecha. Probá otro día.</p>`;
+  let huecosHtml;
+  if (state.huecos.length) {
+    huecosHtml = `<div class="huecos-grid">${state.huecos
+      .map((h) => `<button type="button" class="hueco-btn" data-inicio="${h.hora_inicio}" data-fin="${h.hora_fin}">${hhmm(h.hora_inicio)}</button>`)
+      .join("")}</div>`;
+  } else if (state.listaEsperaOk) {
+    huecosHtml = `<p class="hint">Listo, te anotamos. Si se libera algo ese día te avisamos por WhatsApp.</p>`;
+  } else {
+    huecosHtml = `
+      <p class="hint">No hay huecos libres para esa fecha. Probá otro día, o anotate y te avisamos si se libera algo.</p>
+      <form id="espera-form" style="margin-top:10px;">
+        <input type="text" id="espera-nombre" placeholder="Tu nombre" required />
+        <input type="tel" id="espera-telefono" placeholder="Tu teléfono" required style="margin-top:8px;" />
+        <button type="submit" class="secondary" style="margin-top:8px;">Avisame si se libera algo</button>
+        <div class="error-msg" id="espera-error"></div>
+      </form>
+    `;
+  }
 
   app.innerHTML = `
     <h1>Reservar en ${escapeHtml(state.peluquero.nombre)}</h1>
@@ -265,10 +279,38 @@ function render() {
       renderConfirmacion();
     });
   });
+
+  const esperaForm = document.getElementById("espera-form");
+  if (esperaForm) {
+    esperaForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errorEl = document.getElementById("espera-error");
+      const submitBtn = esperaForm.querySelector("button[type=submit]");
+      submitBtn.disabled = true;
+      try {
+        const { error } = await db.from("lista_espera").insert({
+          peluquero_id: state.comercioId,
+          profesional_id: state.profesionalId,
+          servicio_id: state.servicioId,
+          fecha: state.fecha,
+          cliente_nombre: document.getElementById("espera-nombre").value.trim(),
+          cliente_telefono: document.getElementById("espera-telefono").value.trim(),
+        });
+        if (error) throw error;
+        state.listaEsperaOk = true;
+        render();
+      } catch (err) {
+        console.error(err);
+        errorEl.textContent = err.message || "No se pudo anotar";
+        submitBtn.disabled = false;
+      }
+    });
+  }
 }
 
 async function refrescar() {
   state.error = null;
+  state.listaEsperaOk = false;
   try {
     await cargarHuecos();
   } catch (err) {

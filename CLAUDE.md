@@ -104,6 +104,7 @@ turnos-app/
 ├── migracion_v8.sql       # turnos.aviso_comercio_enviado — avisa por WhatsApp al comercio cuando entra una reserva nueva por el link público
 ├── migracion_v9.sql       # turnos.confirmacion_enviada — confirma por WhatsApp al cliente apenas reserva
 ├── migracion_v10.sql      # obtener_turno_cliente/cancelar_turno_cliente — el cliente ve y cancela su turno desde reservar.html?turno=<id>
+├── migracion_v11.sql      # lista_espera + avisar_lista_espera — el cliente se anota si no hay huecos, se le avisa al liberarse algo
 ├── vercel.json            # rewrite /r/:slug -> /reservar.html?slug=:slug (link corto, ver DEPLOY.md)
 ├── index.html             # LANDING — página de marketing estática (no usa Supabase), es la raíz del sitio; "Entrar" y todos los CTA llevan a app.html
 ├── app.html               # shell de la app logueada (login → agenda)
@@ -131,8 +132,8 @@ Google Cloud + Supabase (ver `SETUP.md`).
 `huecos.sql` → `migracion_v3_enum.sql` (sola, transacción propia) →
 `migracion_v3.sql` → `migracion_v4.sql` → `migracion_v5.sql` →
 `migracion_v6.sql` → `migracion_v7.sql` → `migracion_v8.sql` →
-`migracion_v9.sql` → `migracion_v10.sql` (ver `SETUP.md`). Todas las
-migraciones son en caliente: no borran datos.
+`migracion_v9.sql` → `migracion_v10.sql` → `migracion_v11.sql` (ver
+`SETUP.md`). Todas las migraciones son en caliente: no borran datos.
 
 ## Cómo correrlo local
 ```bash
@@ -232,6 +233,27 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
       cliente. El link va incluido en el WhatsApp de confirmación
       (`APP_URL`, ahora usada también por `index.js`, no solo
       `payments.js`).
+- [x] Bloqueo repetido (`app.js`, Horarios → "Feriados y licencias" →
+      "Bloqueo repetido"): bloquea el mismo horario todas las semanas
+      (ej. "todos los martes al mediodía") hasta una fecha límite.
+      Mismo mecanismo que "Bloquear fechas" (que ya existía, para
+      rangos de días enteros): genera una fila `bloqueado` por
+      ocurrencia y las inserta juntas — nada de una tabla de "reglas"
+      aparte ni cambios en `generar_huecos_disponibles`. Deliberadamente
+      no cubre turnos recurrentes de un cliente fijo (`ocupado`), solo
+      bloqueos — más riesgo de choque de horarios/servicio, se evalúa
+      aparte si hace falta.
+- [x] Lista de espera (`migracion_v11.sql`): si `reservar.html` no
+      tiene huecos para una fecha, el cliente se anota (nombre +
+      teléfono) en vez de irse. Al cancelarse un turno ese día — por
+      cualquiera de los dos caminos, comercio desde la Agenda o
+      cliente desde su link — `avisar_lista_espera()` les manda un
+      WhatsApp (tipo `hueco_liberado` en `notificaciones_pendientes`).
+      Versión simple a propósito: avisa que "se liberó algo ese día",
+      no valida que el hueco puntual alcance para la duración del
+      servicio pedido — un falso positivo no hace daño, el cliente
+      entra al link y no ve nada que le sirva. El comercio ve quién
+      está anotado desde Horarios → "Lista de espera" (solo lectura).
 - [x] Link corto para compartir (`migracion_v6.sql` + `vercel.json`):
       cada comercio elige un slug desde Horarios → "Marca del link
       público" (ej. `clavis.ar/r/peluqueria-lucia`) en vez del
