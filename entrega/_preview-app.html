@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Clavis — preview del nuevo style.css</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="login-shell">
+  <div class="login-aside">
+    <div class="brand"><img src="assets/logo-clavis-light.svg" alt="Clavis" /></div>
+    <img class="login-illustration" src="assets/login-ilustracion.svg" alt="" />
+    <h2>El cuaderno de turnos ya cumplió.</h2>
+    <p>Entrá y mirá la agenda de hoy, sin llamados ni idas y vueltas.</p>
+    <div class="login-testimonial">
+      <span class="dot"></span>
+      <span>“En dos semanas dejé de contestar mensajes a la noche.” <strong>Marcos B.</strong></span>
+    </div>
+  </div>
+  <div class="login-form-side">
+    <div class="login-form-card">
+      <h2>Entrá a tu agenda</h2>
+      <p>Usá el mail con el que te dimos de alta.</p>
+      <form onsubmit="return false">
+        <div>
+          <label>Email</label>
+          <input type="email" placeholder="hola@tulocal.com" />
+        </div>
+        <div>
+          <label>Contraseña</label>
+          <input type="password" placeholder="••••••••" />
+        </div>
+        <button class="dark" type="submit">Entrar</button>
+        <button class="secondary" type="button">Continuar con Google</button>
+        <p class="hint">¿Todavía no tenés cuenta? Pedí tu alta y la dejamos lista en el día.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><img src="assets/logo-clavis.svg" alt="Clavis" /></div>
+    <div class="sidebar-comercio">Barbería Norte</div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active"><span class="navdot"></span>Agenda</button>
+      <button class="nav-item"><span class="navdot"></span>Métricas</button>
+      <button class="nav-item"><span class="navdot"></span>Clientes</button>
+      <button class="nav-item"><span class="navdot"></span>Horarios</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-plan">
+        <div class="sidebar-plan-label">Prueba gratis</div>
+        <div class="sidebar-plan-dias">Te quedan 9 días</div>
+        <button>Activar plan</button>
+      </div>
+      <button class="secondary">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="content-header">
+      <h2>Martes 14 de octubre</h2>
+      <p class="sub">5 turnos · 2 sin confirmar · 3 huecos libres</p>
+    </div>
+
+    <div class="agenda-toolbar">
+      <div class="date-nav">
+        <button>‹</button>14 oct<button>›</button>
+      </div>
+      <button class="secondary">Imprimir</button>
+      <button>+ Nuevo turno</button>
+    </div>
+
+    <div class="chip-row">
+      <button class="chip active">Todos</button>
+      <button class="chip">Nico</button>
+      <button class="chip">Vale</button>
+      <button class="chip">Juli</button>
+    </div>
+
+    <div class="agenda-list">
+      <div class="agenda-row">
+        <div class="row-hora">09:00</div>
+        <div class="turno-card" data-estado="atendido">
+          <div>
+            <div class="turno-nombre">Nahuel Sosa <span class="status-badge atendido">Atendido</span></div>
+            <div class="turno-sub">Corte + barba · 45 min · Nico</div>
+          </div>
+          <div class="turno-precio">$9.500</div>
+        </div>
+      </div>
+      <div class="agenda-row">
+        <div class="row-hora">09:45</div>
+        <button class="slot-empty">Libre · tocá para asignar o bloquear</button>
+      </div>
+      <div class="agenda-row">
+        <div class="row-hora">10:30</div>
+        <div class="turno-card" data-estado="confirmado">
+          <div>
+            <div class="turno-nombre">Malena Ruiz <span class="status-badge confirmado">Sin confirmar</span></div>
+            <div class="turno-sub">Color + lavado · 90 min · Vale</div>
+          </div>
+          <div class="turno-precio">$21.000</div>
+        </div>
+      </div>
+      <div class="agenda-row">
+        <div class="row-hora">13:00</div>
+        <div class="turno-card" data-estado="bloqueado">
+          <div>
+            <div class="turno-nombre">Almuerzo</div>
+            <div class="turno-sub">Bloqueado · 60 min</div>
+          </div>
+        </div>
+      </div>
+      <div class="agenda-row">
+        <div class="row-hora">17:00</div>
+        <div class="turno-card" data-estado="ausente">
+          <div>
+            <div class="turno-nombre">Ignacio Pérez <span class="status-badge ausente">Ausente</span></div>
+            <div class="turno-sub">Corte · 30 min · Nico</div>
+          </div>
+          <div class="turno-precio">$6.500</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="margin-top:22px">
+      <div class="stat-tile accent-fill"><div class="stat-n">72%</div><div class="stat-l">Ocupación de hoy</div></div>
+      <div class="stat-tile"><div class="stat-n">$51.200</div><div class="stat-l">Ingreso estimado</div></div>
+      <div class="stat-tile"><div class="stat-n">2</div><div class="stat-l">Sin confirmar</div></div>
+      <div class="stat-tile"><div class="stat-n">8%</div><div class="stat-l">Ausencias del mes</div></div>
+    </div>
+
+    <div class="horarios-grid" style="margin-top:22px">
+      <div class="metrics-card">
+        <h4>Días de atención</h4>
+        <p class="sub">El horario del comercio, compartido por todos los profesionales.</p>
+        <div class="dia-row">
+          <label class="switch"><input type="checkbox" checked /><span class="slider"></span></label>
+          <span class="dia-nombre">Lunes</span><span class="dia-horario">09:00 – 19:00</span><span class="dia-cant">20 huecos</span>
+        </div>
+        <div class="dia-row">
+          <label class="switch"><input type="checkbox" /><span class="slider"></span></label>
+          <span class="dia-nombre">Domingo</span><span class="dia-horario">cerrado</span>
+        </div>
+        <div class="inline-form">
+          <input type="text" placeholder="Nuevo servicio" />
+          <input type="number" placeholder="min" />
+          <button>Agregar</button>
+        </div>
+      </div>
+      <div class="empty-illustration">
+        <img src="assets/sin-turnos.svg" alt="" />
+        <p class="titulo">Sin turnos este día</p>
+        <p class="sub">Toda la agenda está libre.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-backdrop visible" style="position:relative;inset:auto;padding:26px 32px 60px">
+  <div class="modal">
+    <div class="turno-detail-head">
+      <div class="avatar">MR</div>
+      <div>
+        <div class="turno-detail-name">Malena Ruiz</div>
+        <div class="turno-detail-contact">341 555 7741</div>
+      </div>
+    </div>
+    <div class="turno-detail-grid">
+      <div><div class="g-label">Horario</div><div class="g-value">10:30</div></div>
+      <div><div class="g-label">Servicio</div><div class="g-value">Color + lavado</div></div>
+      <div><div class="g-label">Profesional</div><div class="g-value">Vale</div></div>
+      <div><div class="g-label">Precio</div><div class="g-value">$21.000</div></div>
+    </div>
+    <div class="turno-nota">Pidió el mismo color que la última vez.</div>
+    <div class="huecos-grid">
+      <button class="hueco-btn">11:00</button>
+      <button class="hueco-btn">12:30</button>
+      <button class="hueco-btn">16:00</button>
+    </div>
+    <div class="actions">
+      <button class="secondary">Reprogramar</button>
+      <button class="danger">Cancelar turno</button>
+      <button>Marcar asistió</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
