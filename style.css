@@ -228,7 +228,7 @@ button:disabled {
   align-items: center;
 }
 
-.login-aside .brand img { height: 26px; width: auto; }
+.login-aside .brand img { height: 46px; width: auto; }
 
 .login-illustration {
   width: 100%;
@@ -352,13 +352,13 @@ button:disabled {
   align-items: center;
   padding: 0 8px;
 }
-.sidebar-brand img { height: 22px; width: auto; }
+.sidebar-brand img { height: 32px; width: auto; }
 
 .sidebar-comercio {
   padding: 0 8px;
   font-size: 12.5px;
   color: var(--text-muted);
-  margin-top: -18px;
+  margin-top: 4px;
 }
 
 .sidebar-nav {
