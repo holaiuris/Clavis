@@ -85,6 +85,17 @@ function iniciales(nombre) {
   return (partes[0][0] + (partes[1] ? partes[1][0] : "")).toUpperCase();
 }
 
+// Link de WhatsApp Web/app para el botón "WhatsApp" del próximo
+// turno — heurística simple para números argentinos (mismo criterio
+// que normalizarTelefono en server/index.js), no valida el número.
+function waLink(telefono) {
+  let digits = String(telefono || "").replace(/\D/g, "");
+  if (!digits) return null;
+  if (digits.startsWith("0")) digits = digits.slice(1);
+  if (!digits.startsWith("54")) digits = "54" + digits;
+  return `https://wa.me/${digits}`;
+}
+
 function formatFechaLarga(fechaISO) {
   const d = new Date(fechaISO + "T00:00:00");
   const s = d.toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short" });
@@ -132,6 +143,7 @@ async function boot() {
     }
     await loadConfiguracion();
     await loadTablero();
+    await loadListaEspera();
     renderApp();
     avisarVueltaDePago();
   } catch (err) {
@@ -675,28 +687,123 @@ function renderAgendaView() {
       .join("");
   }
 
+  // "Resumen de hoy": turnos ocupados (sin contar bloqueos), cuántos
+  // quedaron sin marcar asistencia (asistio === null — en esta app un
+  // turno recién cargado arranca "Confirmado" por defecto, no hay un
+  // paso de confirmación del cliente todavía, así que "sin marcar" es
+  // el nombre honesto para ese estado).
+  const turnosOcupados = state.turnos.filter((t) => t.estado === "ocupado");
+  const sinMarcar = turnosOcupados.filter((t) => t.asistio === null).length;
+  const esHoy = state.fecha === todayISO();
+
+  const resumenHtml = `
+    <div class="metrics-card resumen-hoy">
+      <h4>${esHoy ? "Resumen de hoy" : "Resumen del día"}</h4>
+      ${
+        pctOcupado === null
+          ? `<p class="hint" style="color:rgba(255,255,255,0.75);">Sin horario de atención cargado este día.</p>`
+          : `
+        <div class="resumen-pct">${pctOcupado}%<span>de ocupación</span></div>
+        <div class="resumen-bar"><div class="resumen-bar-fill" style="width:${Math.min(100, pctOcupado)}%"></div></div>
+      `
+      }
+      <div class="resumen-stats">
+        <div><strong>${turnosOcupados.length}</strong><span>turno${turnosOcupados.length === 1 ? "" : "s"}</span></div>
+        <div><strong>${sinMarcar}</strong><span>sin marcar</span></div>
+        <div><strong>${libres.length}</strong><span>hueco${libres.length === 1 ? "" : "s"}</span></div>
+      </div>
+    </div>`;
+
+  // "Próximo turno": el siguiente ocupado desde ahora — solo tiene
+  // sentido mirando el día de hoy, no un día pasado/futuro cualquiera.
+  let proximoTurno = null;
+  if (esHoy) {
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    proximoTurno = turnosOcupados
+      .filter((t) => timeToMin(t.hora_inicio) >= nowMin)
+      .sort((a, b) => timeToMin(a.hora_inicio) - timeToMin(b.hora_inicio))[0];
+  }
+  const proximoServicio = proximoTurno ? state.servicios.find((s) => s.id === proximoTurno.servicio_id) : null;
+  const proximoWa = proximoTurno ? waLink(proximoTurno.cliente_telefono) : null;
+  const proximoTurnoHtml = `
+    <div class="metrics-card">
+      <h4>Próximo turno</h4>
+      ${
+        !proximoTurno
+          ? `<p class="hint">${esHoy ? "No queda ningún turno por venir hoy." : "Elegí hoy para ver el próximo turno."}</p>`
+          : `
+        <div class="proximo-turno-head">
+          <div class="avatar">${escapeHtml(iniciales(proximoTurno.cliente_nombre))}</div>
+          <div>
+            <div style="font-weight:700;">${escapeHtml(proximoTurno.cliente_nombre || "Sin nombre")}</div>
+            <div class="hint" style="margin-top:0;">${hhmm(proximoTurno.hora_inicio)}${proximoServicio ? " · " + escapeHtml(proximoServicio.nombre) : ""}</div>
+          </div>
+        </div>
+        <div class="actions" style="margin-top:12px;">
+          ${
+            proximoWa
+              ? `<a href="${proximoWa}" target="_blank" rel="noopener" class="secondary" style="text-align:center;flex:1;">WhatsApp</a>`
+              : `<button type="button" class="secondary" disabled style="flex:1;">Sin teléfono</button>`
+          }
+          <button type="button" class="secondary" data-ver-ficha="${proximoTurno.cliente_id || ""}" style="flex:1;" ${proximoTurno.cliente_id ? "" : "disabled"}>Ver ficha</button>
+        </div>
+      `
+      }
+    </div>`;
+
+  const listaEsperaHtml = `
+    <div class="metrics-card">
+      <h4 style="display:flex; align-items:center; justify-content:space-between;">
+        Lista de espera
+        ${state.listaEspera.length ? `<span class="lista-espera-count">${state.listaEspera.length}</span>` : ""}
+      </h4>
+      ${
+        state.listaEspera.length
+          ? `<div class="row-list">${state.listaEspera
+              .slice(0, 6)
+              .map(
+                (le) => `
+            <div class="row-item">
+              <span class="grow">${escapeHtml(le.cliente_nombre)}</span>
+              <span class="hint" style="margin:0;">${new Date(le.fecha + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })}</span>
+            </div>`
+              )
+              .join("")}</div>`
+          : `<p class="hint">Nadie anotado por ahora.</p>`
+      }
+    </div>`;
+
   return `
     <div class="content-header">
       <h2>Agenda del día</h2>
       <p class="sub">${state.turnos.length} turno${state.turnos.length === 1 ? "" : "s"} · ${libres.length} hueco${libres.length === 1 ? "" : "s"} libre${libres.length === 1 ? "" : "s"}${pctOcupado === null ? "" : ` · ${pctOcupado}% ocupado`}</p>
     </div>
-    <div class="agenda-toolbar">
-      <div class="date-nav">
-        <button type="button" id="fecha-prev" aria-label="Día anterior">‹</button>
-        <span>${formatFechaLarga(state.fecha)}</span>
-        <button type="button" id="fecha-next" aria-label="Día siguiente">›</button>
+    <div class="agenda-layout">
+      <div class="agenda-main">
+        <div class="agenda-toolbar">
+          <div class="date-nav">
+            <button type="button" id="fecha-prev" aria-label="Día anterior">‹</button>
+            <span>${formatFechaLarga(state.fecha)}</span>
+            <button type="button" id="fecha-next" aria-label="Día siguiente">›</button>
+          </div>
+          <input type="date" id="fecha-input" value="${state.fecha}" style="max-width:150px" />
+          ${state.servicios.length ? `<select id="servicio-select">${serviciosOptions}</select>` : `<span class="hint">Agregá un servicio en Horarios</span>`}
+          <button type="button" class="secondary" id="btn-imprimir-agenda">Imprimir</button>
+          <button type="button" id="btn-nuevo-turno">+ Nuevo turno</button>
+        </div>
+        <div class="agenda-print-header">
+          <h2>${escapeHtml(state.peluquero.nombre)} — Agenda del ${formatFechaLarga(state.fecha)}</h2>
+        </div>
+        <div class="chip-row">${profesionalChips}</div>
+        <div class="chip-row">${estadoChips}</div>
+        <div class="agenda-list">${filasHtml}</div>
       </div>
-      <input type="date" id="fecha-input" value="${state.fecha}" style="max-width:150px" />
-      ${state.servicios.length ? `<select id="servicio-select">${serviciosOptions}</select>` : `<span class="hint">Agregá un servicio en Horarios</span>`}
-      <button type="button" class="secondary" id="btn-imprimir-agenda">Imprimir</button>
-      <button type="button" id="btn-nuevo-turno">+ Nuevo turno</button>
+      <div class="agenda-sidebar">
+        ${resumenHtml}
+        ${proximoTurnoHtml}
+        ${listaEsperaHtml}
+      </div>
     </div>
-    <div class="agenda-print-header">
-      <h2>${escapeHtml(state.peluquero.nombre)} — Agenda del ${formatFechaLarga(state.fecha)}</h2>
-    </div>
-    <div class="chip-row">${profesionalChips}</div>
-    <div class="chip-row">${estadoChips}</div>
-    <div class="agenda-list">${filasHtml}</div>
   `;
 }
 
