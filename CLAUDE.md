@@ -119,6 +119,7 @@ turnos-app/
 ├── package.json           # solo trae el script "build" (scripts/gen-config.js) para el deploy en Vercel — la app sigue sin build step propio
 ├── scripts/gen-config.js  # genera config.js desde variables de entorno en el build del hosting — ver DEPLOY.md
 ├── server/                # servers aparte (Node): recordatorios de WhatsApp y pagos con Mercado Pago — ver server/README.md
+├── test_huecos.sql        # casos borde de generar_huecos_disponibles — correr manual en el SQL Editor, se auto-deshace (rollback)
 ├── SETUP.md               # instrucciones paso a paso para levantar el proyecto Supabase
 └── DEPLOY.md              # instrucciones paso a paso para deployar (Vercel + Railway) y conectar clavis.ar
 ```
@@ -308,14 +309,19 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
       no la tomo unilateralmente.
 - [ ] `app.js` sin modularizar (un solo archivo, ~2000 líneas). El
       naming (`renderXView`/`wireXView`) lo mantiene navegable, pero
-      separarlo en módulos ES ayudaría. Lo pausé a propósito: sin
-      tests automatizados de por medio, un refactor grande así tiene
-      riesgo real de regresión silenciosa — mejor con la próxima red
-      de seguridad puesta, no antes.
-- [ ] Cero tests automatizados, sobre todo para
-      `generar_huecos_disponibles` (si se rompe, doble-reservás o
-      desaparecen huecos) — valdría un puñado de casos borde en SQL
-      (pgTAP o un script que la llame directo).
+      separarlo en módulos ES ayudaría. Se puede retomar ahora que
+      existe `test_huecos.sql` como red de seguridad mínima para la
+      pieza más crítica — sigue siendo un refactor grande, hacerlo con
+      cuidado.
+- [x] `test_huecos.sql`: casos borde de `generar_huecos_disponibles`
+      (servicio que no entra en la ventana, turno pegado al cierre,
+      bloqueado vs. ocupado, scoping por profesional, día sin horario
+      configurado). No es pgTAP a propósito (evita esa dependencia
+      nueva) — un script plpgsql con `raise exception` como assert,
+      todo dentro de una transacción con `rollback` al final: nunca
+      deja datos de prueba en la base real, es seguro correrlo las
+      veces que haga falta. No cubre nada más que esa función — el
+      resto de la app sigue sin tests.
 - [ ] Deliberadamente NO calcado del mockup: duración de turno global en
       Horarios (choca con que la duración depende del servicio elegido),
       log de "Actividad" tipo timeline (no hay tracking de eventos real
