@@ -40,6 +40,13 @@ consulta):**
    que usa `server/index.js` para avisarle al cliente cuando el comercio
    cancela un turno, y teléfono obligatorio al reservar desde el link
    público (antes era opcional).
+10. Pegar el contenido completo de `migracion_v7.sql` → **Run**. Cierra
+    2 huecos de seguridad del acceso público encontrados en revisión de
+    código: crea la vista `peluqueros_publico` (reservar.js pasa a leer
+    de ahí, no de `peluqueros` directo — la policy vieja exponía la
+    tabla entera, teléfono/plan/etc. de TODOS los comercios, a
+    cualquiera con la anon key) y valida que la duración del turno
+    insertado coincida con la del servicio elegido.
 
 Si tu proyecto ya tenía datos cargados de una instalación anterior, no
 hace falta borrar nada: corré igual los pasos que falten sobre lo que

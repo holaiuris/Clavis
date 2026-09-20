@@ -100,6 +100,7 @@ turnos-app/
 ├── migracion_v4.sql       # aviso mínimo para reservar desde el link público
 ├── migracion_v5.sql       # color de acento + logo por comercio (bucket "logos" en Storage), para personalizar reservar.html
 ├── migracion_v6.sql       # slug (link corto), notificaciones_pendientes (aviso al cliente al cancelar) y teléfono obligatorio al reservar
+├── migracion_v7.sql       # vista peluqueros_publico (RLS pública ya no expone la tabla entera) + valida duración real del servicio en turnos_public_insert
 ├── vercel.json            # rewrite /r/:slug -> /reservar.html?slug=:slug (link corto, ver DEPLOY.md)
 ├── index.html             # LANDING — página de marketing estática (no usa Supabase), es la raíz del sitio; "Entrar" y todos los CTA llevan a app.html
 ├── app.html               # shell de la app logueada (login → agenda)
@@ -119,14 +120,15 @@ turnos-app/
 `index.html` (el landing) es 100% estático (sin JS de Supabase): copy, planes
 y CTAs que todos apuntan a `app.html`. Ojo con el nombre: es la raíz del
 sitio pero NO es la app — la app logueada vive en `app.html`. El pago de los
-planes sí es real (Mercado Pago, ver `server/payments.js`); el login con
-Google todavía no está conectado.
+planes sí es real (Mercado Pago, ver `server/payments.js`); el botón de
+login con Google ya está en `app.js` pero falta la configuración en
+Google Cloud + Supabase (ver `SETUP.md`).
 
 **Orden de instalación SQL:** `schema.sql` → `migracion_v2.sql` →
 `huecos.sql` → `migracion_v3_enum.sql` (sola, transacción propia) →
 `migracion_v3.sql` → `migracion_v4.sql` → `migracion_v5.sql` →
-`migracion_v6.sql` (ver `SETUP.md`). Todas las migraciones son en
-caliente: no borran datos.
+`migracion_v6.sql` → `migracion_v7.sql` (ver `SETUP.md`). Todas las
+migraciones son en caliente: no borran datos.
 
 ## Cómo correrlo local
 ```bash
@@ -194,6 +196,19 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
 - [x] Teléfono obligatorio al reservar desde el link público
       (`migracion_v6.sql` endurece `turnos_public_insert`, antes solo
       exigía el nombre) — hace falta para poder avisar cancelaciones.
+- [x] Endurecimiento de seguridad del acceso público (`migracion_v7.sql`,
+      encontrado en revisión de código): `peluqueros_public_select`
+      (`using (true)`) exponía la tabla entera vía REST a cualquiera
+      con la anon key — RLS es row-level, no column-level, así que
+      acotar las columnas del lado de `reservar.js` no protegía nada.
+      Reemplazada por la vista `peluqueros_publico` (solo
+      id/nombre/slug/aviso_minimo_horas/color_acento/logo_url).
+      `turnos_public_insert` ahora también valida que
+      `hora_fin - hora_inicio` matchee `servicios.duracion_minutos`
+      del servicio elegido. `reservar.js` suma un honeypot
+      (`.hp-field`) contra spam de bots — un captcha de verdad
+      (hCaptcha/Turnstile) queda pendiente, requiere que el dueño cree
+      cuenta en ese servicio.
 - [x] Cobro real con Mercado Pago (`server/payments.js`): pago único de
       $14.900 (plan "Comercio") vía Checkout Pro. El botón "Activar
       plan" del sidebar crea una preferencia y redirige; el webhook

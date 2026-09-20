@@ -74,10 +74,12 @@ async function init() {
   }
 
   try {
-    const columnas = "id, nombre, aviso_minimo_horas, color_acento, logo_url";
+    // peluqueros_publico (vista, migracion_v7.sql): solo lo que este
+    // link necesita mostrar — telefono/plan/etc. del comercio NO están
+    // acá a propósito, ver el comentario de la vista en la migración.
     const peluqueroRes = state.slug
-      ? await db.from("peluqueros").select(columnas).eq("slug", state.slug).maybeSingle()
-      : await db.from("peluqueros").select(columnas).eq("id", state.comercioId).maybeSingle();
+      ? await db.from("peluqueros_publico").select("*").eq("slug", state.slug).maybeSingle()
+      : await db.from("peluqueros_publico").select("*").eq("id", state.comercioId).maybeSingle();
     if (peluqueroRes.error) throw peluqueroRes.error;
 
     if (!peluqueroRes.data) {
@@ -226,6 +228,10 @@ function renderConfirmacion() {
         <label>Tu teléfono</label>
         <input type="tel" id="cli-telefono" required placeholder="Para avisarte si el comercio cancela o mueve tu turno" />
       </div>
+      <div class="hp-field" aria-hidden="true">
+        <label for="cli-empresa">No completar</label>
+        <input type="text" id="cli-empresa" name="empresa" tabindex="-1" autocomplete="off" />
+      </div>
       <div class="actions">
         <button type="button" class="secondary" id="cli-volver">Volver</button>
         <button type="submit">Confirmar turno</button>
@@ -241,6 +247,10 @@ function renderConfirmacion() {
 
   document.getElementById("confirmar-form").addEventListener("submit", async (e) => {
     e.preventDefault();
+    // Honeypot: un campo invisible para humanos (ver CSS .hp-field) que
+    // los bots de formularios suelen completar igual. Si tiene algo,
+    // cortamos en silencio — sin error, para no darle pistas al bot.
+    if (document.getElementById("cli-empresa").value.trim()) return;
     const errorEl = document.getElementById("confirmar-error");
     const submitBtn = e.target.querySelector("button[type=submit]");
     submitBtn.disabled = true;
