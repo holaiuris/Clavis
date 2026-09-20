@@ -199,6 +199,26 @@ async function cargarHuecos() {
   state.huecos = (data || []).filter((h) => new Date(`${state.fecha}T${h.hora_inicio}`).getTime() >= limite);
 }
 
+// Tira de días para elegir fecha — más intuitivo que un <input
+// type="date"> pelado, y hace obvio que "probar otro día" es una
+// opción antes de anotarse en la lista de espera.
+function generarDiasStrip(cantidad) {
+  const dias = [];
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  for (let i = 0; i < cantidad; i++) {
+    const d = new Date(hoy);
+    d.setDate(hoy.getDate() + i);
+    const nombreDia = i === 0 ? "Hoy" : i === 1 ? "Mañana" : d.toLocaleDateString("es-AR", { weekday: "long" });
+    dias.push({
+      iso: isoDate(d),
+      nombre: nombreDia.charAt(0).toUpperCase() + nombreDia.slice(1),
+      diaMes: d.toLocaleDateString("es-AR", { day: "numeric", month: "short" }).replace(".", ""),
+    });
+  }
+  return dias;
+}
+
 function render() {
   if (!state.profesionales.length || !state.servicios.length) {
     app.innerHTML = `
@@ -227,19 +247,33 @@ function render() {
     huecosHtml = `<p class="hint">Listo, te anotamos. Si se libera algo ese día te avisamos por WhatsApp.</p>`;
   } else {
     huecosHtml = `
-      <p class="hint">No hay huecos libres para esa fecha. Probá otro día, o anotate y te avisamos si se libera algo.</p>
-      <form id="espera-form" style="margin-top:10px;">
-        <input type="text" id="espera-nombre" placeholder="Tu nombre" required />
-        <input type="tel" id="espera-telefono" placeholder="Tu teléfono" required style="margin-top:8px;" />
-        <button type="submit" class="secondary" style="margin-top:8px;">Avisame si se libera algo</button>
-        <div class="error-msg" id="espera-error"></div>
-      </form>
+      <p class="hint">No hay huecos libres para el día que elegiste arriba — probá otro día.</p>
+      <div class="espera-cta">
+        <p class="hint" style="margin:0 0 6px;">¿Ya probaste otros días y ninguno te sirve?</p>
+        <form id="espera-form">
+          <input type="text" id="espera-nombre" placeholder="Tu nombre" required />
+          <input type="tel" id="espera-telefono" placeholder="Tu teléfono" required style="margin-top:6px;" />
+          <button type="submit" class="secondary" id="espera-submit">Avisame si se libera algo</button>
+          <div class="error-msg" id="espera-error"></div>
+        </form>
+      </div>
     `;
   }
 
+  const diasStrip = generarDiasStrip(21);
+  const diasStripHtml = diasStrip
+    .map(
+      (d) => `
+    <button type="button" class="dia-pill ${d.iso === state.fecha ? "active" : ""}" data-fecha="${d.iso}">
+      <span class="dia-pill-nombre">${escapeHtml(d.nombre)}</span>
+      <span class="dia-pill-num">${escapeHtml(d.diaMes)}</span>
+    </button>`
+    )
+    .join("");
+
   app.innerHTML = `
     <h1>Reservar en ${escapeHtml(state.peluquero.nombre)}</h1>
-    <p class="hint">Elegí profesional, servicio y horario.</p>
+    <p class="hint">Elegí profesional, servicio y día.</p>
     <form id="filtros-form" onsubmit="return false">
       <div>
         <label>Profesional</label>
@@ -249,11 +283,15 @@ function render() {
         <label>Servicio</label>
         <select id="sel-servicio">${serviciosOptions}</select>
       </div>
-      <div>
-        <label>Fecha</label>
-        <input type="date" id="sel-fecha" value="${state.fecha}" min="${todayISO()}" />
-      </div>
     </form>
+    <div style="margin-top:16px;">
+      <label>¿Qué día?</label>
+      <div class="dias-strip">${diasStripHtml}</div>
+      <p class="hint" style="margin:6px 0 0;">
+        ¿Buscás una fecha más lejana? <a href="#" id="otra-fecha-link">Elegí del calendario</a>
+        <input type="date" id="sel-fecha" value="${state.fecha}" min="${todayISO()}" style="display:none; margin-top:6px;" />
+      </p>
+    </div>
     <div style="margin-top:16px;">
       <label>Horarios disponibles</label>
       ${huecosHtml}
@@ -261,6 +299,19 @@ function render() {
     ${state.error ? `<p class="error-msg">${escapeHtml(state.error)}</p>` : ""}
   `;
 
+  document.querySelectorAll(".dia-pill").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      state.fecha = btn.dataset.fecha;
+      await refrescar();
+    });
+  });
+  document.getElementById("otra-fecha-link").addEventListener("click", (e) => {
+    e.preventDefault();
+    const input = document.getElementById("sel-fecha");
+    input.style.display = "block";
+    input.focus();
+    if (input.showPicker) input.showPicker();
+  });
   document.getElementById("sel-profesional").addEventListener("change", async (e) => {
     state.profesionalId = e.target.value;
     await refrescar();
