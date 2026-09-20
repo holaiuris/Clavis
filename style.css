@@ -93,7 +93,7 @@ button {
 }
 
 button::after {
-  background-color: color-mix(in srgb, var(--accent) 72%, black);
+  background-color: color-mix(in srgb, var(--accent) 72%, #243e4b);
   border-radius: 16px;
   bottom: -4px;
   content: "";
@@ -118,10 +118,13 @@ button.secondary {
 button.secondary::after { background-color: var(--border); }
 
 button.dark { background-color: var(--ink); color: #fff; }
-button.dark::after { background-color: color-mix(in srgb, var(--ink) 70%, black); }
+/* --ink ya es el tono más oscuro de la paleta — no hay con qué
+   mezclarlo para oscurecerlo más, así que el escalón de este usa un
+   navy fijo un poco más profundo (no negro). */
+button.dark::after { background-color: #16262e; }
 
 button.danger { background-color: var(--bloqueado); color: #fff; }
-button.danger::after { background-color: color-mix(in srgb, var(--bloqueado) 70%, black); }
+button.danger::after { background-color: color-mix(in srgb, var(--bloqueado) 70%, #243e4b); }
 
 button:disabled {
   opacity: 0.6;

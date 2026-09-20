@@ -155,8 +155,23 @@ reusar `generar_huecos_disponibles` e insertar en `turnos` con
 
 ## Próximo paso pendiente: login con Google
 
-Decisión explícita de no hacerlo todavía. Cuando se retome: hay que
-crear credenciales OAuth en Google Cloud (consentimiento, client
-ID/secret) y cargarlas en Supabase → Authentication → Providers →
-Google; el código del botón "Continuar con Google" se agrega recién
-ahí, del lado de `app.js`.
+El botón "Continuar con Google" ya existe en `app.js` (login) y llama
+a `signInWithOAuth({ provider: "google" })` — hoy muestra un error
+prolijo porque el proveedor no está configurado. No hace falta tocar
+código para activarlo, solo:
+
+1. Google Cloud Console → crear credenciales OAuth (pantalla de
+   consentimiento + ID de cliente de OAuth, tipo "Aplicación web").
+   Orígenes autorizados: `http://localhost:8080` y `https://clavis.ar`.
+   URI de redirección: la que da Supabase en el paso 2.
+2. Supabase → Authentication → Providers → Google: activarlo, pegar
+   el Client ID/Secret del paso 1.
+3. Supabase → Authentication → URL Configuration → Redirect URLs:
+   confirmar `http://localhost:8080/app.html` (y después
+   `https://clavis.ar/app.html`) en la lista.
+
+Ojo: como el alta de comercios está cerrada (self-signup desactivado),
+probar primero con la cuenta que ya tenés (mismo email que el login
+por contraseña) antes de asumir que funciona para cualquiera — no está
+verificado que Supabase vincule automáticamente un login de Google a
+un usuario ya existente en vez de intentar crear uno nuevo.

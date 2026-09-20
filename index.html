@@ -88,13 +88,15 @@
     right: 0;
     bottom: -4px;
     border-radius: 16px;
-    background-color: color-mix(in srgb, var(--accent) 72%, black);
+    background-color: color-mix(in srgb, var(--accent) 72%, #243e4b);
     z-index: -1;
   }
   .btn:hover { filter: brightness(1.06); }
   .btn:active { border-width: 0 0 0; padding-bottom: 16px; }
   .btn-dark { background-color: var(--ink); color: #fff; }
-  .btn-dark::after { background-color: color-mix(in srgb, var(--ink) 70%, black); }
+  /* --ink ya es el tono más oscuro de la paleta — el escalón de este
+     usa un navy fijo un poco más profundo en vez de negro. */
+  .btn-dark::after { background-color: #16262e; }
   .btn-accent { background-color: var(--accent); color: #fff; }
   .btn-outline { background-color: var(--panel); color: var(--text); }
   .btn-outline::after { background-color: var(--border); }
@@ -102,10 +104,10 @@
   .btn-outline-light::after { content: none; }
   /* Botones blancos sobre fondo oscuro (plan destacado, banner de
      trial): el escalón oscuro de --accent no se leería ahí — un gris
-     claro en su lugar, que sí se distingue contra el fondo navy. */
+     con tinte navy en su lugar, que sí se distingue contra el fondo. */
   .plan.featured .btn::after,
   .trial-banner .btn::after {
-    background-color: color-mix(in srgb, white 80%, black);
+    background-color: color-mix(in srgb, white 80%, #243e4b);
   }
 
   .eyebrow { color: var(--accent); font-weight: 700; font-size: 12.5px; letter-spacing: 0.06em; margin-bottom: 14px; }
