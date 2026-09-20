@@ -1669,74 +1669,74 @@ function renderHorariosView() {
       <p class="sub">Define cuándo atendés y quién forma parte del equipo.</p>
     </div>
 
-    <div class="horarios-grid">
+    <div class="metrics-card">
+      <h4>Días de atención</h4>
+      <p class="sub">La agenda solo ofrece huecos dentro de estos horarios.</p>
+      ${diasRows}
+    </div>
+
+    <div class="horarios-grid-3">
       <div class="metrics-card">
-        <h4>Días de atención</h4>
-        <p class="sub">La agenda solo ofrece huecos dentro de estos horarios.</p>
-        ${diasRows}
+        <h4>Reglas de reserva</h4>
+
+        <p class="sub" style="margin-bottom:6px;">Aviso mínimo</p>
+        <p class="sub" style="margin-top:0;">Nadie puede reservar desde el link público con menos anticipación que esta (a vos, desde la Agenda, no te aplica).</p>
+        <div class="chip-row">
+          ${chipAviso(2, "2 h")}
+          ${chipAviso(12, "12 h")}
+          ${chipAviso(24, "24 h")}
+        </div>
+
+        <p class="sub" style="margin-bottom:6px;">Recordatorio por WhatsApp</p>
+        <p class="sub" style="margin-top:0;">Necesita <code>server/index.js</code> corriendo (ver <code>server/README.md</code>) para salir de verdad.</p>
+        <div class="chip-row" style="margin-bottom:0;">
+          ${chipRecordatorio(3, "3 h antes")}
+          ${chipRecordatorio(24, "1 día antes")}
+          ${chipRecordatorio(null, "No enviar")}
+        </div>
       </div>
 
-      <div>
-        <div class="metrics-card">
-          <h4>Reglas de reserva</h4>
-
-          <p class="sub" style="margin-bottom:6px;">Aviso mínimo</p>
-          <p class="sub" style="margin-top:0;">Nadie puede reservar desde el link público con menos anticipación que esta (a vos, desde la Agenda, no te aplica).</p>
-          <div class="chip-row">
-            ${chipAviso(2, "2 h")}
-            ${chipAviso(12, "12 h")}
-            ${chipAviso(24, "24 h")}
-          </div>
-
-          <p class="sub" style="margin-bottom:6px;">Recordatorio por WhatsApp</p>
-          <p class="sub" style="margin-top:0;">Necesita <code>server/index.js</code> corriendo (ver <code>server/README.md</code>) para salir de verdad.</p>
-          <div class="chip-row" style="margin-bottom:0;">
-            ${chipRecordatorio(3, "3 h antes")}
-            ${chipRecordatorio(24, "1 día antes")}
-            ${chipRecordatorio(null, "No enviar")}
-          </div>
+      <div class="metrics-card">
+        <h4>Feriados y licencias</h4>
+        <p class="sub">Bloqueá fechas y Clavis deja de ofrecerlas al instante.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" id="btn-bloquear-fechas">Bloquear fechas</button>
+          <button type="button" class="secondary" id="btn-bloqueo-recurrente">Bloqueo repetido</button>
         </div>
+      </div>
 
-        <div class="metrics-card">
-          <h4>Feriados y licencias</h4>
-          <p class="sub">Bloqueá fechas y Clavis deja de ofrecerlas al instante.</p>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button type="button" id="btn-bloquear-fechas">Bloquear fechas</button>
-            <button type="button" class="secondary" id="btn-bloqueo-recurrente">Bloqueo repetido</button>
-          </div>
+      <div class="metrics-card">
+        <h4>Lista de espera</h4>
+        <p class="sub">Se anotan desde el link público cuando no hay huecos para una fecha. Les avisamos solos apenas se libere algo ese día.</p>
+        <div class="row-list">
+          ${
+            state.listaEspera.length
+              ? state.listaEspera
+                  .map(
+                    (le) => `
+            <div class="row-item">
+              <span class="grow">${escapeHtml(le.cliente_nombre)} — ${le.servicios ? escapeHtml(le.servicios.nombre) : "—"}${le.profesionales ? " con " + escapeHtml(le.profesionales.nombre) : ""}</span>
+              <span class="hint" style="margin:0;">${new Date(le.fecha + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })}</span>
+            </div>`
+                  )
+                  .join("")
+              : `<span class="hint">Nadie anotado por ahora.</span>`
+          }
         </div>
+      </div>
+    </div>
 
-        <div class="metrics-card">
-          <h4>Lista de espera</h4>
-          <p class="sub">Se anotan desde el link público cuando no hay huecos para una fecha. Les avisamos solos apenas se libere algo ese día.</p>
-          <div class="row-list">
-            ${
-              state.listaEspera.length
-                ? state.listaEspera
-                    .map(
-                      (le) => `
-              <div class="row-item">
-                <span class="grow">${escapeHtml(le.cliente_nombre)} — ${le.servicios ? escapeHtml(le.servicios.nombre) : "—"}${le.profesionales ? " con " + escapeHtml(le.profesionales.nombre) : ""}</span>
-                <span class="hint" style="margin:0;">${new Date(le.fecha + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })}</span>
-              </div>`
-                    )
-                    .join("")
-                : `<span class="hint">Nadie anotado por ahora.</span>`
-            }
-          </div>
-        </div>
+    <div class="metrics-card">
+      <h4>Link de reservas</h4>
+      <p class="sub">Compartilo con tus clientes — eligen horario y reservan solos, sin loguearse.</p>
+      <div class="row-item">
+        <span class="grow" id="link-reservas-texto" style="word-break:break-all;">${escapeHtml(linkReservas)}</span>
+        <button type="button" class="secondary" id="btn-copiar-link">Copiar</button>
+      </div>
+    </div>
 
-        <div class="metrics-card">
-          <h4>Link de reservas</h4>
-          <p class="sub">Compartilo con tus clientes — eligen horario y reservan solos, sin loguearse.</p>
-          <div class="row-item">
-            <span class="grow" id="link-reservas-texto" style="word-break:break-all;">${escapeHtml(linkReservas)}</span>
-            <button type="button" class="secondary" id="btn-copiar-link">Copiar</button>
-          </div>
-        </div>
-
-        <div class="metrics-card">
-          <h4>Marca del link público</h4>
+    <div class="metrics-card">
+      <h4>Marca del link público</h4>
           <p class="sub">Así se ve <code>reservar.html</code> para tus clientes: tu nombre, tu color y tu logo en vez de los de Clavis.</p>
           <div style="margin-bottom:12px;">
             <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Nombre del comercio</label>
@@ -1769,10 +1769,8 @@ function renderHorariosView() {
                 </div>`
               : ""
           }
-          <button type="button" id="btn-guardar-marca">Guardar</button>
-          <div class="error-msg" id="marca-error"></div>
-        </div>
-      </div>
+      <button type="button" id="btn-guardar-marca">Guardar</button>
+      <div class="error-msg" id="marca-error"></div>
     </div>
 
     <div class="horarios-grid">

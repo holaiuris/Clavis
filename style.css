@@ -69,19 +69,22 @@ a { color: inherit; }
 a:hover { color: var(--accent-dark); }
 
 /* ---------------- Campos ---------------- */
+/* Sombra sólida en vez de borde — mismo lenguaje "offset shadow" que
+   los botones (escalón). Es la versión que el usuario prefería a la
+   de borde plano que trajo el paquete de diseño. */
 select, textarea,
 input[type="date"], input[type="text"], input[type="tel"],
 input[type="number"], input[type="time"], input[type="email"], input[type="password"] {
   width: 100%;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 14px;
   padding: 12px 14px;
   font-size: 14.5px;
-  background: var(--panel);
+  background: var(--panel-2);
   color: var(--text);
   font-family: inherit;
-  box-shadow: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 0 var(--border);
+  transition: box-shadow 0.15s ease;
 }
 select { cursor: pointer; }
 
@@ -89,8 +92,7 @@ select:focus, textarea:focus,
 input[type="date"]:focus, input[type="text"]:focus, input[type="tel"]:focus,
 input[type="number"]:focus, input[type="time"]:focus, input[type="email"]:focus, input[type="password"]:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(110, 171, 199, 0.22);
+  box-shadow: 0 4px 0 var(--accent);
 }
 
 ::placeholder { color: #9bafb9; }
@@ -137,15 +139,11 @@ button:hover:not(:disabled) { filter: brightness(1.04); }
 button:active:not(:disabled) { border-width: 0 0 0; padding-bottom: 15px; }
 button:focus-visible { box-shadow: 0 0 0 3px rgba(36, 62, 75, 0.25); }
 
-button.secondary {
-  background-color: var(--panel);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-bottom-width: 4px;
-  border-bottom-color: transparent;
-}
-button.secondary::after { background-color: #eaf0f2; }
-button.secondary:hover:not(:disabled) { border-color: var(--accent); }
+/* Vuelve al secondary "de antes" (sin borde propio, solo el escalón
+   ::after más claro) — el usuario prefería esta pinta a la variante
+   con borde de 1px que trajo el paquete de diseño. */
+button.secondary { background-color: var(--panel); color: var(--text); }
+button.secondary::after { background-color: var(--border); }
 
 /* El botón "WhatsApp" del próximo turno es un <a>, no un <button> —
    necesita la misma pinta que button.secondary a mano porque los
@@ -153,8 +151,8 @@ button.secondary:hover:not(:disabled) { border-color: var(--accent); }
 .actions a.secondary {
   appearance: button;
   background-color: var(--panel);
-  border: 1px solid var(--border);
-  border-bottom: 4px solid transparent;
+  border: solid transparent;
+  border-width: 0 0 4px;
   border-radius: 14px;
   box-sizing: border-box;
   color: var(--text);
@@ -164,10 +162,24 @@ button.secondary:hover:not(:disabled) { border-color: var(--accent); }
   font-weight: 700;
   line-height: 20px;
   padding: 11px 20px;
+  position: relative;
+  text-align: center;
   text-decoration: none;
-  transition: filter 0.15s ease, border-color 0.15s ease;
+  transition: filter 0.15s ease;
 }
-.actions a.secondary:hover { filter: brightness(1.04); border-color: var(--accent); }
+.actions a.secondary::after {
+  background-color: var(--border);
+  border-radius: 14px;
+  bottom: -4px;
+  content: "";
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: -1;
+}
+.actions a.secondary:hover { filter: brightness(1.04); }
+.actions a.secondary:active { border-width: 0 0 0; padding-bottom: 15px; }
 
 button.dark { background-color: var(--ink); color: #fff; }
 button.dark::after { background-color: #16262e; }
@@ -324,6 +336,10 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   display: flex;
   flex-direction: column;
   gap: 22px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .sidebar-brand { display: flex; align-items: center; padding: 0 6px; }
@@ -393,9 +409,12 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
     border-bottom: 1px solid var(--border-2);
     padding: 14px 16px;
     gap: 12px;
+    position: static;
+    height: auto;
+    overflow-y: visible;
   }
   .sidebar-comercio { margin-top: 0; }
-  .sidebar-nav { flex-direction: row; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 6px; }
+  .sidebar-nav { flex-direction: row; flex-wrap: wrap; gap: 6px; }
   .nav-item { width: auto; white-space: nowrap; flex-shrink: 0; }
   .sidebar-footer { margin-top: 0; flex-direction: row; align-items: stretch; }
   .sidebar-plan { flex: 1; }
@@ -725,6 +744,20 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   margin-bottom: 4px;
 }
 @media (max-width: 860px) { .horarios-grid { grid-template-columns: 1fr; } }
+
+/* A diferencia de .horarios-grid (dos columnas fijas, pensada para pares
+   como Profesionales/Servicios), esta es para grupos de tarjetas más
+   chicas y parejas entre sí — se acomodan solas en 1 a 3 columnas según
+   el ancho disponible, en vez de forzar una columna angosta a estirarse
+   para igualar a una más alta. */
+.horarios-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  align-items: start;
+  margin-bottom: 4px;
+}
+.horarios-grid-3 .metrics-card { margin-bottom: 0; }
 
 .dia-row {
   display: flex;
