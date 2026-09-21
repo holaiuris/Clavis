@@ -771,6 +771,13 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   padding: 12px 0;
   border-bottom: 1px solid var(--border-2);
   flex-wrap: wrap;
+  /* Desde que "Días de atención" pasó a ocupar todo el ancho del
+     panel (ver renderHorariosView), las filas se estiraban a lo
+     ancho de la tarjeta entera — el toggle + horario quedaban sueltos
+     a la izquierda con un hueco enorme antes de dia-cant (que se
+     empuja a la derecha con margin-left:auto). Se limita el ancho de
+     cada fila para que el contenido quede agrupado. */
+  max-width: 640px;
 }
 .dia-row:last-child { border-bottom: none; }
 

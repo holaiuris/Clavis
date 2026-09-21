@@ -1755,7 +1755,10 @@ function renderHorariosView() {
       </div>
 
       <div class="metrics-card">
-        <h4>Google Calendar</h4>
+        <h4 style="display:flex; align-items:center; gap:8px;">
+          <img src="https://www.gstatic.com/images/branding/product/2x/calendar_2020q4_48dp.png" alt="" width="20" height="20" />
+          Google Calendar
+        </h4>
         <p class="sub">Cada turno confirmado se refleja también en tu Google Calendar — solo para verlo desde el celular, Clavis sigue siendo la agenda real.</p>
         ${
           state.peluquero.google_calendar_conectado
@@ -1763,7 +1766,7 @@ function renderHorariosView() {
                 <span class="grow hint" style="margin:0;">Conectado ✓</span>
                 <button type="button" class="danger" id="btn-desconectar-calendar">Desconectar</button>
               </div>`
-            : `<button type="button" id="btn-conectar-calendar">Conectar Google Calendar</button>`
+            : `<button type="button" id="btn-conectar-calendar" style="width:100%;">Conectar</button>`
         }
         <div class="error-msg" id="calendar-error"></div>
       </div>
