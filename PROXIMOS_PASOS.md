@@ -219,20 +219,21 @@ corriendo en Railway (no en tu laptop).
 
 ---
 
-## 6. Login con Google (si lo querés retomar)
+## 6. Login con Google
 
-**Por qué:** el botón "Continuar con Google" ya existe en el login,
-pero hoy tira un error prolijo porque el proveedor no está configurado.
+**Ya configurado y probado** (Google Cloud Console + Supabase, ver
+[`SETUP.md`](SETUP.md) sección "Login con Google") — entraste con tu
+cuenta existente y te llevó a tu agenda.
 
-**El detalle paso a paso ya está en [`SETUP.md`](SETUP.md)**, sección
-"Próximo paso pendiente: login con Google" — son 3 pasos entre Google
-Cloud Console y Supabase. No lo repito acá.
+**Todavía falta probar:** entrar con una cuenta de Google *distinta*
+a la tuya — tiene que rechazar el login, porque el alta de comercios
+sigue cerrada. Si en cambio te deja entrar y te muestra la pantalla de
+"¡Bienvenido/a a Clavis!" pidiendo crear una agenda nueva, es un
+problema de seguridad a cerrar antes de anunciar el login de Google
+públicamente — avisame si pasa eso.
 
-Recordatorio del pasoque agregamos ahí: probalo primero con la cuenta
-que ya tenés (mismo email que tu login por contraseña) antes de asumir
-que anda para cualquiera — el alta de comercios sigue cerrada.
-
-- [ ] Hecho (o decidido seguir sin esto por ahora)
+- [x] Hecho
+- [ ] Probado que una cuenta ajena NO puede entrar
 
 ---
 
@@ -352,7 +353,7 @@ multi-sucursal, no lo vas a poder entregar.
 | 3 | Probar flujo completo real | ⬜ |
 | 4 | Decidir gate de trial/plan | ⬜ |
 | 5 | Deploy (`DEPLOY.md`) | ⬜ |
-| 6 | Login con Google (`SETUP.md`) | ⬜ / opcional |
+| 6 | Login con Google (`SETUP.md`) | ✅ (falta probar cuenta ajena) |
 | 7 | Captcha real (Turnstile) | ⬜ |
 | 8 | Términos y Privacidad | ⬜ |
 | 9 | Renombrar comercio de prueba | ⬜ |

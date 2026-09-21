@@ -128,9 +128,9 @@ turnos-app/
 `index.html` (el landing) es 100% estático (sin JS de Supabase): copy, planes
 y CTAs que todos apuntan a `app.html`. Ojo con el nombre: es la raíz del
 sitio pero NO es la app — la app logueada vive en `app.html`. El pago de los
-planes sí es real (Mercado Pago, ver `server/payments.js`); el botón de
-login con Google ya está en `app.js` pero falta la configuración en
-Google Cloud + Supabase (ver `SETUP.md`).
+planes sí es real (Mercado Pago, ver `server/payments.js`); el login con
+Google ya está configurado y funcionando (Google Cloud + Supabase, ver
+`SETUP.md`).
 
 **Orden de instalación SQL:** `schema.sql` → `migracion_v2.sql` →
 `huecos.sql` → `migracion_v3_enum.sql` (sola, transacción propia) →
@@ -317,9 +317,16 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
       (eso sería la API de Preapproval, no implementada). El trial de 14
       días (`peluqueros.trial_inicio`) sigue siendo solo informativo —
       nunca bloqueó nada, y ahora además puede pasar a plan pago de verdad.
-- [ ] Login con Google: pendiente, decisión explícita de no hacerlo
-      todavía (requiere que el dueño cree credenciales OAuth en Google
-      Cloud).
+- [x] Login con Google: credenciales OAuth creadas en Google Cloud y
+      configuradas en Supabase (Authentication → Providers → Google).
+      El botón llama a `signInWithOAuth` con `redirectTo` explícito a
+      `/app.html` ([app.js](app.js)) — sin eso, Supabase vuelve al
+      "Site URL" configurado (la landing en producción) en vez de a
+      donde arrancó el login, rompiendo probarlo en localhost. Gotcha
+      encontrada al configurarlo: un Client Secret mal copiado da
+      `Unable to exchange external code` recién DESPUÉS de aceptar en
+      Google (no antes) — hay que regenerarlo y pegarlo con cuidado,
+      ver `SETUP.md`.
 - [ ] Gate real de trial/plan: `peluqueros.plan`/`trial_inicio` siguen
       siendo 100% informativos, nunca bloquean nada — técnicamente
       nadie tiene que pagar. Si la idea es cobrar de verdad en serio,

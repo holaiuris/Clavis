@@ -186,25 +186,46 @@ adelante (bot conversacional completo, todavía no construido), debería
 reusar `generar_huecos_disponibles` e insertar en `turnos` con
 `origen = 'whatsapp'` — sin tocar el resto de la app.
 
-## Próximo paso pendiente: login con Google
+## Login con Google (ya configurado)
 
-El botón "Continuar con Google" ya existe en `app.js` (login) y llama
-a `signInWithOAuth({ provider: "google" })` — hoy muestra un error
-prolijo porque el proveedor no está configurado. No hace falta tocar
-código para activarlo, solo:
+El botón "Continuar con Google" en `app.js` llama a `signInWithOAuth`
+con `redirectTo: `${location.origin}/app.html`` explícito. Pasos que
+se siguieron para dejarlo andando:
 
-1. Google Cloud Console → crear credenciales OAuth (pantalla de
-   consentimiento + ID de cliente de OAuth, tipo "Aplicación web").
-   Orígenes autorizados: `http://localhost:8080` y `https://clavis.ar`.
-   URI de redirección: la que da Supabase en el paso 2.
-2. Supabase → Authentication → Providers → Google: activarlo, pegar
-   el Client ID/Secret del paso 1.
-3. Supabase → Authentication → URL Configuration → Redirect URLs:
-   confirmar `http://localhost:8080/app.html` (y después
-   `https://clavis.ar/app.html`) en la lista.
+1. Google Cloud Console → crear un proyecto → **APIs & Services →
+   OAuth consent screen**: tipo External, nombre "Clavis", email de
+   contacto. Mientras quede en modo "Testing", solo los emails que
+   agregues en "Test users" pueden loguearse.
+2. **APIs & Services → Credentials → Create Credentials → OAuth
+   client ID**, tipo "Aplicación web":
+   - Orígenes autorizados de JavaScript: `http://localhost:8080` y
+     `https://clavis.ar`.
+   - URI de redirección autorizado: `https://<project-ref>.supabase.co/auth/v1/callback`
+     (el patrón fijo de Supabase para OAuth — se puede confirmar en
+     el paso siguiente, Supabase la muestra ahí mismo).
+3. Supabase → **Authentication → Providers → Google**: activarlo,
+   pegar el Client ID/Secret del paso 2. Guardar.
+4. Supabase → **Authentication → URL Configuration → Redirect URLs**:
+   agregar `http://localhost:8080/app.html` (match exacto, no solo el
+   origen) y `https://clavis.ar/app.html`.
 
-Ojo: como el alta de comercios está cerrada (self-signup desactivado),
-probar primero con la cuenta que ya tenés (mismo email que el login
-por contraseña) antes de asumir que funciona para cualquiera — no está
-verificado que Supabase vincule automáticamente un login de Google a
-un usuario ya existente en vez de intentar crear uno nuevo.
+**Gotchas encontradas al configurarlo (por si vuelve a pasar en otro
+proyecto):**
+
+- Sin el `redirectTo` explícito en el código, Supabase vuelve al
+  "Site URL" configurado en el dashboard (la landing en producción)
+  en vez de a `localhost:8080` — rompe probar el login en local.
+- Un **Client Secret mal pegado** (espacio de más, se cortó al
+  copiar) no falla en la pantalla de consentimiento de Google — deja
+  pasar hasta ahí y recién falla DESPUÉS, al volver, con
+  `?error=server_error&error_description=Unable+to+exchange+external+code`.
+  Se soluciona regenerando el secret en Google Cloud Console y
+  pegándolo de nuevo con cuidado en Supabase.
+
+**Pendiente de verificar:** como el alta de comercios está cerrada
+(self-signup desactivado), falta probar con una cuenta de Google
+*distinta* a la que ya tiene comercio — tiene que rechazar el login.
+Si en cambio deja entrar y muestra la pantalla "¡Bienvenido/a a
+Clavis!" (`renderSetup` en `app.js`), cualquiera con cuenta de Google
+podría autoprovisionarse un comercio gratis, y haría falta cerrar ese
+camino antes de anunciar el login de Google públicamente.

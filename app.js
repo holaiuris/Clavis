@@ -380,7 +380,13 @@ function renderLogin() {
     const errorEl = document.getElementById("login-error");
     errorEl.textContent = "";
     try {
-      const { error } = await db.auth.signInWithOAuth({ provider: "google" });
+      // Sin esto, Supabase vuelve al "Site URL" configurado en el
+      // dashboard (hoy https://clavis.ar) en vez de a donde arrancó el
+      // login — rompe probar el login de Google en localhost.
+      const { error } = await db.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${location.origin}/app.html` },
+      });
       if (error) throw error;
     } catch (err) {
       // Esperable hasta que se configure Google en Supabase (Authentication
