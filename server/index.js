@@ -24,6 +24,7 @@
 
 require("dotenv").config();
 const { createClient } = require("@supabase/supabase-js");
+const ws = require("ws");
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
 
@@ -43,7 +44,11 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
 // comercios para mandar recordatorios. Esta key es secreta y NUNCA debe
 // llegar al navegador (a diferencia de la anon key que usa el resto de
 // la app) — vive solo acá, en un .env que no se commitea.
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+// { realtime: { transport: ws } }: sin esto, versiones recientes de
+// @supabase/supabase-js tiran en Node < 22 al no encontrar WebSocket
+// nativo — createClient() siempre inicializa un RealtimeClient aunque
+// no se use, así que hace falta acá igual sin usar Realtime.
+const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { realtime: { transport: ws } });
 
 const whatsapp = new Client({
   authStrategy: new LocalAuth({ dataPath: "./wwebjs_auth" }),

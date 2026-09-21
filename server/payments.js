@@ -27,6 +27,7 @@ require("dotenv").config();
 const express = require("express");
 const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 const { createClient } = require("@supabase/supabase-js");
+const ws = require("ws");
 
 // process.env.PORT: algunos hostings (Railway, Render) lo inyectan
 // solos y esperan que el proceso escuche justo ahí para enrutar el
@@ -51,7 +52,11 @@ if (!SERVICE_ROLE_KEY) {
 
 // service_role bypassa RLS: hace falta para poder actualizar el plan
 // de CUALQUIER comercio desde el webhook (no hay sesión de usuario acá).
-const supabase = SERVICE_ROLE_KEY ? createClient(SUPABASE_URL, SERVICE_ROLE_KEY) : null;
+// { realtime: { transport: ws } }: sin esto, versiones recientes de
+// @supabase/supabase-js tiran en Node < 22 al no encontrar WebSocket
+// nativo — createClient() siempre inicializa un RealtimeClient aunque
+// no se use, así que hace falta acá igual sin usar Realtime.
+const supabase = SERVICE_ROLE_KEY ? createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { realtime: { transport: ws } }) : null;
 const mpClient = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN });
 
 // Pago único, plan fijo por ahora — si mañana hay más de un plan

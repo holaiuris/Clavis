@@ -34,6 +34,7 @@ require("dotenv").config();
 const express = require("express");
 const { OAuth2Client } = require("google-auth-library");
 const { createClient } = require("@supabase/supabase-js");
+const ws = require("ws");
 
 const PORT = process.env.CALENDAR_PORT || process.env.PORT || 3002;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -55,7 +56,11 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !SUPABASE_URL || !SERVICE_ROLE
 // service_role bypassa RLS: hace falta para leer/escribir el
 // refresh_token (nadie más puede) y para tocar turnos/peluqueros de
 // cualquier comercio sin una sesión de usuario.
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+// { realtime: { transport: ws } }: sin esto, versiones recientes de
+// @supabase/supabase-js tiran en Node < 22 al no encontrar WebSocket
+// nativo — createClient() siempre inicializa un RealtimeClient
+// aunque no se use, así que hace falta acá igual sin usar Realtime.
+const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { realtime: { transport: ws } });
 const oauth2Client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, REDIRECT_URI);
 
 const app = express();
