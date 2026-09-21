@@ -2,16 +2,18 @@
   "name": "clavis-server",
   "version": "0.1.0",
   "private": true,
-  "description": "Servers aparte de Clavis: recordatorios de WhatsApp y pagos con Mercado Pago. Ninguno corre en el navegador.",
+  "description": "Servers aparte de Clavis: recordatorios de WhatsApp, pagos con Mercado Pago e integración con Google Calendar. Ninguno corre en el navegador.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "payments": "node payments.js"
+    "payments": "node payments.js",
+    "calendar": "node calendar.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "google-auth-library": "^9.14.0",
     "mercadopago": "^2.0.15",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "^1.26.0"

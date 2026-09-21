@@ -146,6 +146,7 @@ async function boot() {
     await loadListaEspera();
     renderApp();
     avisarVueltaDePago();
+    avisarVueltaDeCalendar();
   } catch (err) {
     console.error(err);
     state.error = err.message || "Error inesperado";
@@ -172,6 +173,25 @@ function avisarVueltaDePago() {
     <div class="actions"><button type="button" class="secondary" id="pago-close">Cerrar</button></div>
   `);
   document.getElementById("pago-close").addEventListener("click", closeModal);
+}
+
+// server/calendar.js redirige de vuelta acá con ?calendar=conectado|error
+// después del OAuth con Google — mismo patrón que avisarVueltaDePago.
+function avisarVueltaDeCalendar() {
+  const calendar = new URLSearchParams(location.search).get("calendar");
+  if (!calendar) return;
+  history.replaceState(null, "", location.pathname);
+  const mensajes = {
+    conectado: "¡Google Calendar conectado! De ahora en más, los turnos que confirmes van a aparecer ahí también.",
+    error: "No se pudo conectar Google Calendar. Podés intentar de nuevo desde Horarios.",
+  };
+  if (!mensajes[calendar]) return;
+  openModal(`
+    <h3>Google Calendar</h3>
+    <p class="hint">${mensajes[calendar]}</p>
+    <div class="actions"><button type="button" class="secondary" id="calendar-vuelta-close">Cerrar</button></div>
+  `);
+  document.getElementById("calendar-vuelta-close").addEventListener("click", closeModal);
 }
 
 async function loadPeluquero() {
@@ -1733,6 +1753,20 @@ function renderHorariosView() {
           }
         </div>
       </div>
+
+      <div class="metrics-card">
+        <h4>Google Calendar</h4>
+        <p class="sub">Cada turno confirmado se refleja también en tu Google Calendar — solo para verlo desde el celular, Clavis sigue siendo la agenda real.</p>
+        ${
+          state.peluquero.google_calendar_conectado
+            ? `<div class="row-item">
+                <span class="grow hint" style="margin:0;">Conectado ✓</span>
+                <button type="button" class="danger" id="btn-desconectar-calendar">Desconectar</button>
+              </div>`
+            : `<button type="button" id="btn-conectar-calendar">Conectar Google Calendar</button>`
+        }
+        <div class="error-msg" id="calendar-error"></div>
+      </div>
     </div>
 
     <div class="metrics-card">
@@ -1840,6 +1874,35 @@ function wireHorariosView() {
 
   const btnBloqueoRecurrente = document.getElementById("btn-bloqueo-recurrente");
   if (btnBloqueoRecurrente) btnBloqueoRecurrente.addEventListener("click", openBloqueoRecurrenteModal);
+
+  const btnConectarCalendar = document.getElementById("btn-conectar-calendar");
+  if (btnConectarCalendar) {
+    btnConectarCalendar.addEventListener("click", () => {
+      location.href = `${window.CALENDAR_API_URL}/conectar?peluqueroId=${state.peluquero.id}`;
+    });
+  }
+
+  const btnDesconectarCalendar = document.getElementById("btn-desconectar-calendar");
+  if (btnDesconectarCalendar) {
+    btnDesconectarCalendar.addEventListener("click", async () => {
+      const calendarError = document.getElementById("calendar-error");
+      calendarError.textContent = "";
+      try {
+        // El delete se banca solo en la policy de RLS (el dueño puede
+        // borrar su propia fila); el update de peluqueros ya tenía
+        // policy propia de antes — no hace falta pasar por el server.
+        const { error: delError } = await db.from("integraciones_google_calendar").delete().eq("peluquero_id", state.peluquero.id);
+        if (delError) throw delError;
+        const { error: updError } = await db.from("peluqueros").update({ google_calendar_conectado: false }).eq("id", state.peluquero.id);
+        if (updError) throw updError;
+        await withLoading(loadPeluquero);
+        renderApp();
+      } catch (err) {
+        console.error(err);
+        calendarError.textContent = err.message || "No se pudo desconectar";
+      }
+    });
+  }
 
   document.querySelectorAll("[data-recordatorio]").forEach((chip) => {
     chip.addEventListener("click", async () => {

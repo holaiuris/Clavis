@@ -14,3 +14,8 @@ window.SUPABASE_ANON_KEY = "tu-anon-key";
 // deployado (ej. https://payments-production-xxxx.up.railway.app). Es
 // solo una URL, no un secreto.
 window.PAYMENTS_API_URL = "http://localhost:3001";
+
+// URL del servidor de integración con Google Calendar
+// (server/calendar.js). Cambiar cuando esté deployado. Es solo una
+// URL, no un secreto.
+window.CALENDAR_API_URL = "http://localhost:3002";

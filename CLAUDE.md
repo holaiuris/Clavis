@@ -107,6 +107,7 @@ turnos-app/
 ├── migracion_v11.sql      # lista_espera + avisar_lista_espera — el cliente se anota si no hay huecos, se le avisa al liberarse algo
 ├── migracion_v12.sql      # agrega 'cancelado' al enum turno_estado (va SOLA, transacción propia)
 ├── migracion_v13.sql      # cancelar_turno_cliente() marca estado='cancelado' en vez de borrar — depende de migracion_v12.sql
+├── migracion_v14.sql      # integraciones_google_calendar (token, no legible por el cliente) + peluqueros.google_calendar_conectado + turnos.google_event_id
 ├── vercel.json            # rewrite /r/:slug -> /reservar.html?slug=:slug (link corto, ver DEPLOY.md)
 ├── index.html             # LANDING — página de marketing estática (no usa Supabase), es la raíz del sitio; "Entrar" y todos los CTA llevan a app.html
 ├── app.html               # shell de la app logueada (login → agenda)
@@ -118,7 +119,7 @@ turnos-app/
 ├── config.template.js     # plantilla de config.js con placeholders (esta sí se commitea)
 ├── package.json           # solo trae el script "build" (scripts/gen-config.js) para el deploy en Vercel — la app sigue sin build step propio
 ├── scripts/gen-config.js  # genera config.js desde variables de entorno en el build del hosting — ver DEPLOY.md
-├── server/                # servers aparte (Node): recordatorios de WhatsApp y pagos con Mercado Pago — ver server/README.md
+├── server/                # servers aparte (Node): recordatorios de WhatsApp, pagos con Mercado Pago e integración con Google Calendar — ver server/README.md
 ├── test_huecos.sql        # casos borde de generar_huecos_disponibles — correr manual en el SQL Editor, se auto-deshace (rollback)
 ├── SETUP.md               # instrucciones paso a paso para levantar el proyecto Supabase
 ├── DEPLOY.md              # instrucciones paso a paso para deployar (Vercel + Railway) y conectar clavis.ar
@@ -138,8 +139,8 @@ Google ya está configurado y funcionando (Google Cloud + Supabase, ver
 `migracion_v6.sql` → `migracion_v7.sql` → `migracion_v8.sql` →
 `migracion_v9.sql` → `migracion_v10.sql` → `migracion_v11.sql` →
 `migracion_v12.sql` → `migracion_v13.sql` (sola, transacción propia,
-mismo motivo que `migracion_v3_enum.sql`) (ver `SETUP.md`). Todas las
-migraciones son en caliente: no borran datos.
+mismo motivo que `migracion_v3_enum.sql`) → `migracion_v14.sql` (ver
+`SETUP.md`). Todas las migraciones son en caliente: no borran datos.
 
 ## Cómo correrlo local
 ```bash
@@ -359,6 +360,16 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
       está preparado el repo para deployar (`DEPLOY.md`: frontend en
       Vercel, `server/` como dos servicios en Railway) — falta que el
       dueño cree las cuentas/repo de GitHub y siga esos pasos.
+- [ ] Integración con Google Calendar (solo exportar — `server/calendar.js`,
+      `migracion_v14.sql`): código listo (botón "Conectar Google
+      Calendar" en Horarios, OAuth aparte del login, webhook de
+      `turnos` → crea/actualiza/borra eventos), pero sin probar
+      end-to-end todavía — falta correr la migración, cargar
+      `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` en `server/.env`,
+      agregar el redirect URI del callback en Google Cloud Console, y
+      conectar el Database Webhook de Supabase (necesita URL pública,
+      no funciona apuntando a localhost sin un túnel tipo ngrok). Ver
+      `server/README.md` sección "Google Calendar".
 
 ## Decisión pendiente: WhatsApp
 Dos caminos evaluados, sin decidir todavía:
