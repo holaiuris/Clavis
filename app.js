@@ -317,7 +317,10 @@ function renderLogin() {
           <div style="display:flex; align-items:center; gap:10px; margin:16px 0; color:var(--text-muted); font-size:12px;">
             <div style="flex:1; height:1px; background:var(--border);"></div>o<div style="flex:1; height:1px; background:var(--border);"></div>
           </div>
-          <button type="button" class="secondary" id="login-google" style="width:100%;">Continuar con Google</button>
+          <button type="button" class="secondary" id="login-google" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px;">
+            <img src="https://www.gstatic.com/images/branding/googleg_gradient/svg/googleg_gradient_standard_24px.svg" alt="" width="18" height="18" />
+            Continuar con Google
+          </button>
           <p class="hint" style="margin-top:16px;"><a href="index.html">← Volver al inicio</a></p>
         </div>
       </div>

@@ -266,10 +266,15 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 .login-aside .brand img { height: 42px; width: auto; }
 
 .login-illustration {
+  display: block;
   width: 100%;
   max-width: 420px;
   height: auto;
-  margin: 0 0 22px;
+  /* .login-aside es flex-column sin align-items:center, así que un
+     <img> con max-width por debajo del ancho del contenedor quedaba
+     pegado a la izquierda en vez de centrado — de ahí que se viera
+     desentrado en pantallas anchas. */
+  margin: 0 auto 22px;
   filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.22));
 }
 
