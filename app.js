@@ -79,6 +79,17 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
+// "Barbería Norte" -> "barberia-norte". Mismas reglas que valida el
+// server al guardar el slug (minúsculas, números y guiones).
+function slugify(texto) {
+  return (texto || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // saca acentos
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function iniciales(nombre) {
   const partes = (nombre || "").trim().split(/\s+/).filter(Boolean);
   if (!partes.length) return "?";
@@ -1767,7 +1778,7 @@ function renderHorariosView() {
           <span class="hint" style="white-space:nowrap;">${escapeHtml(new URL("r/", location.href).href)}</span>
           <input type="text" id="marca-slug" value="${escapeHtml(state.peluquero.slug || "")}" placeholder="mi-comercio" pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Minúsculas, números y guiones — sin espacios ni acentos" style="flex:1; width:auto; min-width:0;" />
         </div>
-        <p class="hint" style="margin-top:4px;">Reemplaza el link largo de abajo por uno corto y fácil de compartir. Solo funciona una vez deployado (ver DEPLOY.md) — en local seguís viendo el link largo.</p>
+        <p class="hint" style="margin-top:4px;">Se autocompleta con el nombre de arriba, pero lo podés editar. Reemplaza el link largo de abajo por uno corto y fácil de compartir. Solo funciona una vez deployado (ver DEPLOY.md) — en local seguís viendo el link largo aunque hayas guardado uno corto.</p>
       </div>
       <div style="display:flex; gap:16px; align-items:flex-end; margin-bottom:12px; flex-wrap:wrap;">
         <div>
@@ -1926,6 +1937,21 @@ function wireHorariosView() {
       }
     });
   }
+
+  // Autocompletar el link corto a partir del nombre mientras se
+  // escribe — antes eran dos campos sin relación aparente y no
+  // quedaba claro que "Link corto" había que completarlo a mano.
+  // Si ya había un slug guardado (o el usuario lo tocó a mano en
+  // este mismo render), no lo pisamos.
+  const inputNombreMarca = document.getElementById("marca-nombre");
+  const inputSlugMarca = document.getElementById("marca-slug");
+  let slugTocadoAMano = inputSlugMarca.value.trim() !== "";
+  inputSlugMarca.addEventListener("input", () => {
+    slugTocadoAMano = true;
+  });
+  inputNombreMarca.addEventListener("input", () => {
+    if (!slugTocadoAMano) inputSlugMarca.value = slugify(inputNombreMarca.value);
+  });
 
   const btnGuardarMarca = document.getElementById("btn-guardar-marca");
   btnGuardarMarca.addEventListener("click", async () => {
