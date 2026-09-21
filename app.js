@@ -1661,7 +1661,12 @@ function renderHorariosView() {
         </label>
         <span class="dia-nombre">${DIAS[dia]}</span>
         <span class="dia-horario">
-          ${franjas.length ? chips + ` <button type="button" class="secondary" data-add-franja="${dia}" style="padding:2px 10px;font-size:12px;">+ franja</button>` : "Cerrado"}
+          ${
+            franjas.length
+              ? chips +
+                ` <button type="button" class="chip" data-add-franja="${dia}" style="border-style:dashed; color:var(--accent-dark); font-weight:700;">+ franja</button>`
+              : "Cerrado"
+          }
         </span>
         ${cant ? `<span class="dia-cant">${cant} turno${cant === 1 ? "" : "s"} esta semana</span>` : ""}
       </div>`;
