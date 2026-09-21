@@ -61,6 +61,9 @@ function aplicarMarca(peluquero) {
   if (peluquero.color_acento && /^#[0-9a-f]{6}$/i.test(peluquero.color_acento)) {
     document.documentElement.style.setProperty("--accent", peluquero.color_acento);
   }
+  if (peluquero.color_fondo && /^#[0-9a-f]{6}$/i.test(peluquero.color_fondo)) {
+    document.documentElement.style.setProperty("--bg", peluquero.color_fondo);
+  }
 
   const brand = document.getElementById("reservar-brand");
   if (peluquero.logo_url) {

@@ -108,6 +108,7 @@ turnos-app/
 ├── migracion_v12.sql      # agrega 'cancelado' al enum turno_estado (va SOLA, transacción propia)
 ├── migracion_v13.sql      # cancelar_turno_cliente() marca estado='cancelado' en vez de borrar — depende de migracion_v12.sql
 ├── migracion_v14.sql      # integraciones_google_calendar (token, no legible por el cliente) + peluqueros.google_calendar_conectado + turnos.google_event_id
+├── migracion_v15.sql      # peluqueros.color_fondo — personalización de fondo del link público, además del color de acento
 ├── vercel.json            # rewrite /r/:slug -> /reservar.html?slug=:slug (link corto, ver DEPLOY.md)
 ├── index.html             # LANDING — página de marketing estática (no usa Supabase), es la raíz del sitio; "Entrar" y todos los CTA llevan a app.html
 ├── app.html               # shell de la app logueada (login → agenda)
@@ -139,8 +140,9 @@ Google ya está configurado y funcionando (Google Cloud + Supabase, ver
 `migracion_v6.sql` → `migracion_v7.sql` → `migracion_v8.sql` →
 `migracion_v9.sql` → `migracion_v10.sql` → `migracion_v11.sql` →
 `migracion_v12.sql` → `migracion_v13.sql` (sola, transacción propia,
-mismo motivo que `migracion_v3_enum.sql`) → `migracion_v14.sql` (ver
-`SETUP.md`). Todas las migraciones son en caliente: no borran datos.
+mismo motivo que `migracion_v3_enum.sql`) → `migracion_v14.sql` →
+`migracion_v15.sql` (ver `SETUP.md`). Todas las migraciones son en
+caliente: no borran datos.
 
 ## Cómo correrlo local
 ```bash
@@ -199,14 +201,17 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
       cliente elige profesional/servicio/horario y reserva sin login,
       vía RLS pública acotada (`migracion_v3.sql`) — nunca lee turnos
       ajenos, `generar_huecos_disponibles` corre `security definer`.
-- [x] Personalización del link público (`migracion_v5.sql`): cada
-      comercio carga su color de acento y su logo desde Horarios →
-      "Marca del link público" (`peluqueros.color_acento`/`logo_url`,
-      logo subido al bucket de Storage `logos`, scoped por
-      `peluquero_id`). `reservar.js` pisa `--accent` y el wordmark de
-      Clavis con el logo/nombre del comercio; si no cargó nada, se ve
-      la marca de Clavis por defecto. Deliberadamente acotado a un solo
-      color (no un theme completo) para no romper contraste/legibilidad.
+- [x] Personalización del link público (`migracion_v5.sql` +
+      `migracion_v15.sql`): cada comercio carga su color de acento,
+      color de fondo y su logo desde Horarios → "Tu link público"
+      (`peluqueros.color_acento`/`color_fondo`/`logo_url`, logo
+      subido al bucket de Storage `logos`, scoped por
+      `peluquero_id`). `reservar.js` pisa `--accent`/`--bg` y el
+      wordmark de Clavis con el logo/nombre del comercio; si no cargó
+      nada, se ve la marca de Clavis por defecto. Deliberadamente
+      acotado a dos colores (no un theme completo) para no romper
+      contraste/legibilidad — la responsabilidad de que combinen bien
+      es del comercio, no validamos contraste automáticamente.
 - [x] Recordatorios y avisos de WhatsApp (`server/index.js`,
       whatsapp-web.js — no oficial, riesgo de baneo, elegido a propósito
       para validar rápido antes de la API oficial de Meta): manda un
@@ -304,7 +309,8 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
       con la anon key — RLS es row-level, no column-level, así que
       acotar las columnas del lado de `reservar.js` no protegía nada.
       Reemplazada por la vista `peluqueros_publico` (solo
-      id/nombre/slug/aviso_minimo_horas/color_acento/logo_url).
+      id/nombre/slug/aviso_minimo_horas/color_acento/color_fondo/logo_url,
+      esta última columna sumada en `migracion_v15.sql`).
       `turnos_public_insert` ahora también valida que
       `hora_fin - hora_inicio` matchee `servicios.duracion_minutos`
       del servicio elegido. `reservar.js` suma un honeypot

@@ -1698,125 +1698,110 @@ function renderHorariosView() {
       <p class="sub">Define cuándo atendés y quién forma parte del equipo.</p>
     </div>
 
-    <div class="metrics-card">
-      <h4>Días de atención</h4>
-      <p class="sub">La agenda solo ofrece huecos dentro de estos horarios.</p>
-      ${diasRows}
-    </div>
-
-    <div class="horarios-grid-3">
+    <div class="horarios-grid">
       <div class="metrics-card">
-        <h4>Reglas de reserva</h4>
-
-        <p class="sub" style="margin-bottom:6px;">Aviso mínimo</p>
-        <p class="sub" style="margin-top:0;">Nadie puede reservar desde el link público con menos anticipación que esta (a vos, desde la Agenda, no te aplica).</p>
-        <div class="chip-row">
-          ${chipAviso(2, "2 h")}
-          ${chipAviso(12, "12 h")}
-          ${chipAviso(24, "24 h")}
-        </div>
-
-        <p class="sub" style="margin-bottom:6px;">Recordatorio por WhatsApp</p>
-        <p class="sub" style="margin-top:0;">Necesita <code>server/index.js</code> corriendo (ver <code>server/README.md</code>) para salir de verdad.</p>
-        <div class="chip-row" style="margin-bottom:0;">
-          ${chipRecordatorio(3, "3 h antes")}
-          ${chipRecordatorio(24, "1 día antes")}
-          ${chipRecordatorio(null, "No enviar")}
-        </div>
+        <h4>Días de atención</h4>
+        <p class="sub">La agenda solo ofrece huecos dentro de estos horarios.</p>
+        ${diasRows}
       </div>
 
-      <div class="metrics-card">
-        <h4>Feriados y licencias</h4>
-        <p class="sub">Bloqueá fechas y Clavis deja de ofrecerlas al instante.</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" id="btn-bloquear-fechas">Bloquear fechas</button>
-          <button type="button" class="secondary" id="btn-bloqueo-recurrente">Bloqueo repetido</button>
+      <div>
+        <div class="metrics-card">
+          <h4>Feriados y licencias</h4>
+          <p class="sub">Bloqueá fechas y Clavis deja de ofrecerlas al instante.</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" id="btn-bloquear-fechas">Bloquear fechas</button>
+            <button type="button" class="secondary" id="btn-bloqueo-recurrente">Bloqueo repetido</button>
+          </div>
         </div>
-      </div>
 
-      <div class="metrics-card">
-        <h4>Lista de espera</h4>
-        <p class="sub">Se anotan desde el link público cuando no hay huecos para una fecha. Les avisamos solos apenas se libere algo ese día.</p>
-        <div class="row-list">
+        <div class="metrics-card">
+          <h4>Reglas de reserva</h4>
+
+          <p class="sub" style="margin-bottom:6px;">Aviso mínimo</p>
+          <p class="sub" style="margin-top:0;">Nadie puede reservar desde el link público con menos anticipación que esta (a vos, desde la Agenda, no te aplica).</p>
+          <div class="chip-row">
+            ${chipAviso(2, "2 h")}
+            ${chipAviso(12, "12 h")}
+            ${chipAviso(24, "24 h")}
+          </div>
+
+          <p class="sub" style="margin-bottom:6px;">Recordatorio por WhatsApp</p>
+          <p class="sub" style="margin-top:0;">Necesita <code>server/index.js</code> corriendo (ver <code>server/README.md</code>) para salir de verdad.</p>
+          <div class="chip-row" style="margin-bottom:0;">
+            ${chipRecordatorio(3, "3 h antes")}
+            ${chipRecordatorio(24, "1 día antes")}
+            ${chipRecordatorio(null, "No enviar")}
+          </div>
+        </div>
+
+        <div class="metrics-card">
+          <h4 style="display:flex; align-items:center; gap:8px;">
+            <img src="https://www.gstatic.com/images/branding/product/2x/calendar_2020q4_48dp.png" alt="" width="20" height="20" />
+            Google Calendar
+          </h4>
+          <p class="sub">Cada turno confirmado se refleja también en tu Google Calendar — solo para verlo desde el celular, Clavis sigue siendo la agenda real.</p>
           ${
-            state.listaEspera.length
-              ? state.listaEspera
-                  .map(
-                    (le) => `
-            <div class="row-item">
-              <span class="grow">${escapeHtml(le.cliente_nombre)} — ${le.servicios ? escapeHtml(le.servicios.nombre) : "—"}${le.profesionales ? " con " + escapeHtml(le.profesionales.nombre) : ""}</span>
-              <span class="hint" style="margin:0;">${new Date(le.fecha + "T00:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })}</span>
-            </div>`
-                  )
-                  .join("")
-              : `<span class="hint">Nadie anotado por ahora.</span>`
-          }
-        </div>
-      </div>
-
-      <div class="metrics-card">
-        <h4 style="display:flex; align-items:center; gap:8px;">
-          <img src="https://www.gstatic.com/images/branding/product/2x/calendar_2020q4_48dp.png" alt="" width="20" height="20" />
-          Google Calendar
-        </h4>
-        <p class="sub">Cada turno confirmado se refleja también en tu Google Calendar — solo para verlo desde el celular, Clavis sigue siendo la agenda real.</p>
-        ${
-          state.peluquero.google_calendar_conectado
-            ? `<div class="row-item">
-                <span class="grow hint" style="margin:0;">Conectado ✓</span>
-                <button type="button" class="danger" id="btn-desconectar-calendar">Desconectar</button>
-              </div>`
-            : `<button type="button" id="btn-conectar-calendar" style="width:100%;">Conectar</button>`
-        }
-        <div class="error-msg" id="calendar-error"></div>
-      </div>
-    </div>
-
-    <div class="metrics-card">
-      <h4>Link de reservas</h4>
-      <p class="sub">Compartilo con tus clientes — eligen horario y reservan solos, sin loguearse.</p>
-      <div class="row-item">
-        <span class="grow" id="link-reservas-texto" style="word-break:break-all;">${escapeHtml(linkReservas)}</span>
-        <button type="button" class="secondary" id="btn-copiar-link">Copiar</button>
-      </div>
-    </div>
-
-    <div class="metrics-card">
-      <h4>Marca del link público</h4>
-          <p class="sub">Así se ve <code>reservar.html</code> para tus clientes: tu nombre, tu color y tu logo en vez de los de Clavis.</p>
-          <div style="margin-bottom:12px;">
-            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Nombre del comercio</label>
-            <input type="text" id="marca-nombre" value="${escapeHtml(state.peluquero.nombre)}" required />
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Link corto (opcional)</label>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span class="hint" style="white-space:nowrap;">${escapeHtml(new URL("r/", location.href).href)}</span>
-              <input type="text" id="marca-slug" value="${escapeHtml(state.peluquero.slug || "")}" placeholder="mi-comercio" pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Minúsculas, números y guiones — sin espacios ni acentos" style="flex:1; width:auto; min-width:0;" />
-            </div>
-            <p class="hint" style="margin-top:4px;">Reemplaza el link largo de arriba por uno corto y fácil de compartir. Solo funciona una vez deployado (ver DEPLOY.md) — en local seguís viendo el link largo.</p>
-          </div>
-          <div style="display:flex; gap:16px; align-items:flex-end; margin-bottom:12px; flex-wrap:wrap;">
-            <div>
-              <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Color de acento</label>
-              <input type="color" id="marca-color" value="${state.peluquero.color_acento || "#6eabc7"}" style="width:56px;height:38px;padding:2px;" />
-            </div>
-            <div class="grow" style="min-width:180px;">
-              <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Logo (opcional)</label>
-              <input type="file" id="marca-logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" />
-            </div>
-          </div>
-          ${
-            state.peluquero.logo_url
-              ? `<div class="row-item" style="margin-bottom:12px;">
-                  <img src="${escapeHtml(state.peluquero.logo_url)}" alt="" style="height:32px;width:auto;border-radius:6px;" />
-                  <span class="grow hint">Logo actual</span>
-                  <button type="button" class="danger" id="btn-quitar-logo">Quitar</button>
+            state.peluquero.google_calendar_conectado
+              ? `<div class="row-item">
+                  <span class="grow hint" style="margin:0;">Conectado ✓</span>
+                  <button type="button" class="danger" id="btn-desconectar-calendar">Desconectar</button>
                 </div>`
-              : ""
+              : `<button type="button" id="btn-conectar-calendar" style="width:100%;">Conectar</button>`
           }
+          <div class="error-msg" id="calendar-error"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics-card">
+      <h4>Tu link público</h4>
+      <p class="sub">Así se ve <code>reservar.html</code> para tus clientes: tu nombre, tus colores y tu logo en vez de los de Clavis. Guardá los cambios y después compartí el link de abajo.</p>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Nombre del comercio</label>
+        <input type="text" id="marca-nombre" value="${escapeHtml(state.peluquero.nombre)}" required />
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Link corto (opcional)</label>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="hint" style="white-space:nowrap;">${escapeHtml(new URL("r/", location.href).href)}</span>
+          <input type="text" id="marca-slug" value="${escapeHtml(state.peluquero.slug || "")}" placeholder="mi-comercio" pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Minúsculas, números y guiones — sin espacios ni acentos" style="flex:1; width:auto; min-width:0;" />
+        </div>
+        <p class="hint" style="margin-top:4px;">Reemplaza el link largo de abajo por uno corto y fácil de compartir. Solo funciona una vez deployado (ver DEPLOY.md) — en local seguís viendo el link largo.</p>
+      </div>
+      <div style="display:flex; gap:16px; align-items:flex-end; margin-bottom:12px; flex-wrap:wrap;">
+        <div>
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Color de acento</label>
+          <input type="color" id="marca-color" value="${state.peluquero.color_acento || "#6eabc7"}" style="width:56px;height:38px;padding:2px;" />
+        </div>
+        <div>
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Color de fondo</label>
+          <input type="color" id="marca-color-fondo" value="${state.peluquero.color_fondo || "#f2f6f8"}" style="width:56px;height:38px;padding:2px;" />
+        </div>
+        <div class="grow" style="min-width:180px;">
+          <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">Logo (opcional)</label>
+          <input type="file" id="marca-logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" />
+        </div>
+      </div>
+      ${
+        state.peluquero.logo_url
+          ? `<div class="row-item" style="margin-bottom:12px;">
+              <img src="${escapeHtml(state.peluquero.logo_url)}" alt="" style="height:32px;width:auto;border-radius:6px;" />
+              <span class="grow hint">Logo actual</span>
+              <button type="button" class="danger" id="btn-quitar-logo">Quitar</button>
+            </div>`
+          : ""
+      }
       <button type="button" id="btn-guardar-marca">Guardar</button>
       <div class="error-msg" id="marca-error"></div>
+
+      <div style="border-top:1px solid var(--border); margin-top:18px; padding-top:16px;">
+        <p class="sub" style="margin-bottom:6px;">Tu link para compartir</p>
+        <div class="row-item">
+          <span class="grow" id="link-reservas-texto" style="word-break:break-all;">${escapeHtml(linkReservas)}</span>
+          <button type="button" class="secondary" id="btn-copiar-link">Copiar</button>
+        </div>
+      </div>
     </div>
 
     <div class="horarios-grid">
@@ -1947,6 +1932,7 @@ function wireHorariosView() {
     marcaError.textContent = "";
     const nombre = document.getElementById("marca-nombre").value.trim();
     const color = document.getElementById("marca-color").value;
+    const colorFondo = document.getElementById("marca-color-fondo").value;
     const slugRaw = document.getElementById("marca-slug").value.trim().toLowerCase();
     const archivo = document.getElementById("marca-logo-input").files[0];
     if (!nombre) {
@@ -1963,7 +1949,7 @@ function wireHorariosView() {
     }
     btnGuardarMarca.disabled = true;
     try {
-      const cambios = { nombre, color_acento: color, slug: slugRaw || null };
+      const cambios = { nombre, color_acento: color, color_fondo: colorFondo, slug: slugRaw || null };
       if (archivo) {
         const ext = archivo.name.split(".").pop().toLowerCase();
         const ruta = `${state.peluquero.id}/logo.${ext}`;
