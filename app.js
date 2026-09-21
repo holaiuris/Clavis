@@ -1699,9 +1699,15 @@ function renderHorariosView() {
     return `<button type="button" class="chip ${activo ? "active" : ""}" data-aviso="${valor}">${label}</button>`;
   };
 
-  const linkReservas = state.peluquero.slug
-    ? new URL(`r/${state.peluquero.slug}`, location.href).href
-    : new URL(`reservar.html?c=${state.peluquero.id}`, location.href).href;
+  // El link corto (/r/<slug>) depende del rewrite de vercel.json, que
+  // solo existe una vez deployado — en localhost esa ruta no la sirve
+  // nadie y 404ea. Mostrarlo igual en local (antes pasaba) invitaba a
+  // guardar un slug, ver el link corto y que no funcionara al abrirlo.
+  const enLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  const linkReservas =
+    state.peluquero.slug && !enLocal
+      ? new URL(`r/${state.peluquero.slug}`, location.href).href
+      : new URL(`reservar.html?c=${state.peluquero.id}`, location.href).href;
 
   return `
     <div class="content-header">
