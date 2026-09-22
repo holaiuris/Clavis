@@ -386,20 +386,45 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
       alcance detallados en `PROXIMOS_PASOS.md` punto 11, no arrancar
       sin decidirlo explícitamente primero.
 
-## Decisión pendiente: WhatsApp
-Dos caminos evaluados, sin decidir todavía:
-1. **API oficial de Meta (WhatsApp Business)** — requiere verificación de
-   negocio, costo por conversación, sin riesgo de baneo. Recomendado si
-   esto escala a varios comercios reales.
-2. **Librerías no oficiales (whatsapp-web.js, Baileys)** — gratis, rápido
-   de prototipar, riesgo de que Meta banee el número si detecta patrón de
-   bot. Sirve para validar el flujo conversacional con un solo comercio
-   antes de comprometerse con la vía oficial.
+## Decisión: WhatsApp — bot conversacional (V2)
+Decidido (2026-09): el bot conversacional de reservas (V2, todavía sin
+arrancar) va directo por la **API oficial de Meta (WhatsApp Cloud API)**
+con un **número dedicado nuevo** (no el mismo que usa
+`server/index.js` para recordatorios) — no una versión QR/no-oficial
+primero para migrar después. Los dos motores de mensajería (Baileys/
+whatsapp-web.js vs. Cloud API) son lo bastante distintos como código
+que migrar más tarde sería casi reescribir esa parte — no vale la
+pena pagarlo dos veces sabiendo que el destino final es la API oficial.
+
+Al comercio se le vende como "un recepcionista virtual con su propio
+número" — su WhatsApp de siempre queda intacto (puede seguir usando
+la app normal), y configura un mensaje automático ahí derivando a
+clientes que piden turno al número nuevo del bot ("Para turnos,
+escribinos a este número 👉 wa.me/..."). Evita el dilema de "te doy
+un bot pero perdés tu WhatsApp", que es inviable para el perfil de
+comerciante que hoy se maneja con libreta.
+
+El sistema de recordatorios ya construido (`server/index.js`,
+whatsapp-web.js/QR, ver más abajo) sigue como está — es de bajo riesgo
+real (solo le escribe a gente con turno confirmado, no manda mensajes
+fríos) y no hace falta migrarlo solo por prolijidad; convive con el
+número nuevo del bot sin problema.
+
+Pendiente de verificar antes de fijar precios: los montos de Meta
+($0.015-0.02 USD por conversación excedente, cupo de conversaciones
+gratis por cuenta) cambian de tanto en tanto — confirmar en
+[developers.facebook.com/docs/whatsapp/pricing](https://developers.facebook.com/docs/whatsapp/pricing)
+antes de asumirlos como definitivos para el pricing de Clavis.
 
 Cuando se construya, el bot debería reusar `generar_huecos_disponibles`
 para ofrecer horarios por chat (va a necesitar saber con qué profesional
 agendar), e insertar en `turnos` con `origen = 'whatsapp'` al confirmar
-— sin tocar el panel existente.
+— sin tocar el panel existente. Arquitectura: webhook de WhatsApp Cloud
+API → backend → consulta huecos → arma prompt con horarios reales +
+reglas → LLM (modelo económico tipo Gemini Flash / GPT-4o-mini, no un
+modelo propio alojado — el costo por reserva es ínfimo, no justifica
+el gasto fijo de GPU hasta un volumen enorme) → si confirma, INSERT
+transaccional en `turnos` para evitar reservas duplicadas.
 
 ## Convenciones a mantener
 - Nombres de tablas/columnas en español (así arrancó el proyecto).

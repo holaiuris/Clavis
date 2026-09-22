@@ -1,6 +1,6 @@
 # Próximos pasos — guía paso a paso
 
-Esto es tuyo: los 11 pasos pendientes de gestión, en el orden que
+Esto es tuyo: los 12 pasos pendientes de gestión, en el orden que
 quedamos, con el detalle para hacerlos solo. No hace falta que me
 consultes en cada click — pegame acá abajo cuando te trabes en un paso
 puntual, o cuando termines uno y quieras que sigamos con el código que
@@ -404,6 +404,44 @@ pero no gratis, mejor no arrancarlo a mitad de otra cosa.
 
 ---
 
+## 12. Bot conversacional de WhatsApp (V2) — decisión de arquitectura tomada
+
+**Por qué:** surgió de analizar una conversación que tuviste con otra IA
+sobre cómo construir el agente de reservas por WhatsApp. La decisión
+quedó documentada en `CLAUDE.md`, sección "Decisión: WhatsApp — bot
+conversacional (V2)" — resumen acá:
+
+- Va directo por la **API oficial de Meta**, con un **número nuevo,
+  dedicado al bot** (no el que ya usa `server/index.js` para
+  recordatorios). No arrancar con la vía QR/no oficial para "migrar
+  después" — son motores de mensajería distintos, migrar sería casi
+  reescribir esa parte.
+- Al comercio se le vende como "recepcionista virtual con su propio
+  número" — su WhatsApp de toda la vida no se toca. Configura un
+  mensaje automático ahí derivando a los clientes que piden turno al
+  número nuevo.
+- El sistema de recordatorios actual (QR) sigue como está, conviven
+  sin problema.
+
+**Lo que falta de tu parte, en orden:**
+1. Confirmar los precios actuales de Meta antes de cerrar el pricing
+   de los planes — los que citó la otra IA ($0.015-0.02 USD por
+   conversación excedente) pueden estar desactualizados. Mirar
+   [developers.facebook.com/docs/whatsapp/pricing](https://developers.facebook.com/docs/whatsapp/pricing).
+2. Cuando quieras arrancar el bot de verdad: crear/verificar el
+   Business Manager de Meta, dar de alta el número nuevo dedicado vía
+   Embedded Signup, y elegir el proveedor de LLM (Gemini Flash o
+   GPT-4o-mini son las opciones económicas que evaluamos — no hace
+   falta alojar un modelo propio, el costo por reserva es ínfimo).
+3. Avisarme cuando quieras que lo planifiquemos en detalle (prompt,
+   function calling, tabla de estado de conversación) — es un feature
+   grande, no lo arranco sin que me lo pidas explícitamente.
+
+- [ ] Precios de Meta confirmados
+- [ ] Listo para planificar la construcción del bot
+
+---
+
 ## Dónde estoy — resumen rápido
 
 | # | Paso | Estado |
@@ -419,3 +457,4 @@ pero no gratis, mejor no arrancarlo a mitad de otra cosa.
 | 9 | Renombrar comercio de prueba | ⬜ |
 | 10 | Decisión sucursales/Cadena | ⬜ |
 | 11 | Renombrar `peluqueros` (multi-rubro) | ⬜ decisión pendiente |
+| 12 | Bot WhatsApp V2 — confirmar precios Meta | ⬜ |
