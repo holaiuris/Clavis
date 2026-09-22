@@ -46,7 +46,13 @@ verdad.
 **Cuándo está terminado:** el archivo `server/.env` tiene una clave
 larga (arranca con `eyJ...`) después de `SUPABASE_SERVICE_ROLE_KEY=`.
 
-- [ ] Hecho
+**Ya está hecho** (2026-09-22) — de paso revisé el resto de
+`server/.env` y todo lo crítico está cargado (incluido `MP_ACCESS_TOKEN`
+con un token real de producción `APP_USR-...`, no de prueba).
+`CALENDAR_PORT`/`CALENDAR_PUBLIC_URL` quedaron vacías pero no es
+problema, tienen default en el código (3002/localhost).
+
+- [x] Hecho
 
 ---
 
@@ -473,7 +479,7 @@ Business Manager — no lo pude sacar sin esa cuenta.
 
 | # | Paso | Estado |
 |---|------|--------|
-| 1 | `SUPABASE_SERVICE_ROLE_KEY` | ⬜ |
+| 1 | `SUPABASE_SERVICE_ROLE_KEY` | ✅ |
 | 2 | Conectar WhatsApp (QR) | ⬜ |
 | 3 | Probar flujo completo real | ⬜ |
 | 4 | Decidir gate de trial/plan | ⬜ |
