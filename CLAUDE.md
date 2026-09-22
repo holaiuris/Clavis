@@ -366,16 +366,25 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
       está preparado el repo para deployar (`DEPLOY.md`: frontend en
       Vercel, `server/` como dos servicios en Railway) — falta que el
       dueño cree las cuentas/repo de GitHub y siga esos pasos.
-- [ ] Integración con Google Calendar (solo exportar — `server/calendar.js`,
-      `migracion_v14.sql`): código listo (botón "Conectar Google
-      Calendar" en Horarios, OAuth aparte del login, webhook de
-      `turnos` → crea/actualiza/borra eventos), pero sin probar
-      end-to-end todavía — falta correr la migración, cargar
-      `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` en `server/.env`,
-      agregar el redirect URI del callback en Google Cloud Console, y
-      conectar el Database Webhook de Supabase (necesita URL pública,
-      no funciona apuntando a localhost sin un túnel tipo ngrok). Ver
-      `server/README.md` sección "Google Calendar".
+- [x] Integración con Google Calendar (solo exportar — `server/calendar.js`,
+      `migracion_v14.sql`): probado end-to-end — turno asignado en la
+      Agenda aparece como evento en el Google Calendar del comercio.
+      Usa un Database Webhook de Supabase sobre `turnos` (necesita
+      URL pública; en dev local se prueba con un túnel `ngrok`, en
+      producción con la URL real de `server/calendar.js` deployado —
+      ver `server/README.md` sección "Google Calendar"). Gotcha real
+      encontrada: `CREATE OR REPLACE VIEW` no deja insertar una
+      columna en el medio de una vista existente (interpretado como
+      rename) — hay que agregar columnas nuevas siempre al final.
+- [ ] Renombrar `peluqueros` a algo genérico (`comercios`?):
+      encontrado por el usuario en revisión — el nombre de la tabla
+      central (y `peluquero_id` como FK en el resto del esquema) es
+      un resabio de cuando el proyecto era solo para un peluquero,
+      pero Clavis ya se posiciona multi-rubro. Cambio grande (toca
+      RLS, funciones SQL, la vista `peluqueros_publico` y todo el
+      código de `app.js`/`reservar.js`/`server/`) — decisión y
+      alcance detallados en `PROXIMOS_PASOS.md` punto 11, no arrancar
+      sin decidirlo explícitamente primero.
 
 ## Decisión pendiente: WhatsApp
 Dos caminos evaluados, sin decidir todavía:

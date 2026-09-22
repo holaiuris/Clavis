@@ -1,6 +1,6 @@
 # Próximos pasos — guía paso a paso
 
-Esto es tuyo: los 10 pasos pendientes de gestión, en el orden que
+Esto es tuyo: los 11 pasos pendientes de gestión, en el orden que
 quedamos, con el detalle para hacerlos solo. No hace falta que me
 consultes en cada click — pegame acá abajo cuando te trabes en un paso
 puntual, o cuando termines uno y quieras que sigamos con el código que
@@ -344,6 +344,66 @@ multi-sucursal, no lo vas a poder entregar.
 
 ---
 
+## 11. Renombrar `peluqueros` a algo genérico (multi-rubro)
+
+**Por qué:** lo notaste vos mismo — la tabla central de toda la base
+se llama `peluqueros`, resabio de cuando el proyecto arrancó pensado
+solo para un peluquero. Pero Clavis ya se posiciona multi-rubro (el
+landing lo dice explícito: peluquerías, barberías, estética,
+consultorios, tatuajes, kinesiología, veterinarias, talleres). El
+nombre de la tabla no afecta a ningún usuario final — es interno,
+nadie lo ve — pero sí puede confundir a cualquiera que lea el código
+más adelante (¿por qué una veterinaria tiene una fila en
+"peluqueros"?).
+
+**Por qué no lo hago ya de una:** es un cambio grande y con blast
+radius real, no un rename cosmético:
+- La tabla `peluqueros` tiene `peluquero_id` como foreign key en
+  **6 tablas** (`servicios`, `horarios_atencion`, `clientes`,
+  `turnos`, `profesionales`, `notificaciones_pendientes`,
+  `lista_espera`, `integraciones_google_calendar` — son más de 6 en
+  realidad).
+- Cada policy de RLS de esas tablas filtra explícitamente por
+  `peluquero_id in (select id from peluqueros where user_id = auth.uid())`
+  — hay que tocar cada una.
+- Las funciones SQL (`generar_huecos_disponibles`,
+  `obtener_turno_cliente`, `cancelar_turno_cliente`,
+  `avisar_lista_espera`, etc.) reciben `p_peluquero_id` como parámetro.
+- `app.js`, `reservar.js` y los tres servers de `server/` tienen
+  `state.peluquero`, `peluqueroId`, `.from("peluqueros")` repartido
+  por todos lados.
+- La vista pública `peluqueros_publico` (que además tiene su propio
+  historial de seguridad, ver `migracion_v7.sql`) también hay que
+  renombrarla o recrearla.
+
+Nada de esto es difícil por separado, pero hacerlo mal a medias deja
+la base en un estado roto (algo escribe a `comercios`, algo lee de
+`peluqueros`) — necesita ser una migración dedicada, probada de punta
+a punta, no un cambio de paso.
+
+**Cómo lo encararíamos** (cuando lo decidas):
+1. Elegir el nombre nuevo (`comercios` es lo más directo — evitar
+   algo más específico de un rubro, ya que la gracia es que sirva
+   para cualquiera).
+2. Una migración que renombre la tabla y la columna FK en cascada
+   (`alter table ... rename to ...`, `alter table ... rename column
+   peluquero_id to comercio_id` en cada una de las tablas que la
+   referencian) — Postgres lo bancaría sin perder datos ni romper las
+   foreign keys, pero cada policy/función/vista que las mencione por
+   nombre hay que recrearla con el nombre nuevo.
+3. Actualizar `app.js`/`reservar.js`/`server/*.js` en el mismo commit
+   que la migración (no puede quedar el código viejo apuntando al
+   nombre viejo ni un rato).
+4. Probar el flujo completo de nuevo antes de dar por cerrado.
+
+**Qué necesito de vos:** confirmar que querés hacer este cambio (y el
+nombre elegido) antes de que lo planifique en detalle — es reversible
+pero no gratis, mejor no arrancarlo a mitad de otra cosa.
+
+- [ ] Decidido: hacerlo / dejarlo así / nombre elegido: _________________
+
+---
+
 ## Dónde estoy — resumen rápido
 
 | # | Paso | Estado |
@@ -358,3 +418,4 @@ multi-sucursal, no lo vas a poder entregar.
 | 8 | Términos y Privacidad | ⬜ |
 | 9 | Renombrar comercio de prueba | ⬜ |
 | 10 | Decisión sucursales/Cadena | ⬜ |
+| 11 | Renombrar `peluqueros` (multi-rubro) | ⬜ decisión pendiente |
