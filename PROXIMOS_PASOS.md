@@ -200,22 +200,31 @@ de esto es accesible desde internet.
 
 **Ya está todo preparado y documentado en [`DEPLOY.md`](DEPLOY.md)**
 — no repito el detalle acá para no tener dos versiones que se
-desactualicen distinto. Lo que necesitás antes de arrancar:
+desactualicen distinto.
 
-- [ ] Cuenta en GitHub (gratis) — para subir el repo.
-- [ ] Cuenta en [Vercel](https://vercel.com) (gratis) — aloja el
-      sitio estático.
-- [ ] Cuenta en [Railway](https://railway.app) — aloja `server/`.
-      Tiene un nivel gratis limitado; para que quede corriendo 24/7 en
-      serio vas a necesitar cargar una tarjeta.
+**Ya hecho:** la parte liviana (frontend en Vercel) está online —
+`https://clavis-lake-two.vercel.app` funciona de verdad contra tu
+Supabase real (login, agenda, link público de reservas). Repo en
+GitHub (`holaiuris/Clavis`) conectado a Vercel, redeploya solo con
+cada push.
+
+**Lo que falta:**
+- [x] Cuenta en GitHub — hecho, repo `holaiuris/Clavis`.
+- [x] Cuenta en Vercel — hecho, deployado.
+- [ ] Cuenta en [Railway](https://railway.app) — aloja `server/`
+      (WhatsApp + pagos). Tiene un nivel gratis limitado; para que
+      quede corriendo 24/7 en serio vas a necesitar cargar una
+      tarjeta.
 - [ ] Acceso al panel de DNS de donde compraste `clavis.ar`, para
-      cuando llegue el paso de apuntar el dominio.
+      cuando quieras que `clavis.ar` (en vez de la URL de Vercel)
+      apunte a la app — hoy la demo vive en la URL de Vercel, el
+      dominio propio no está conectado todavía.
 
 **Cuándo está terminado:** `https://clavis.ar` carga el landing de
 verdad, `app.html` funciona con tu Supabase real, y `server/` está
 corriendo en Railway (no en tu laptop).
 
-- [ ] Hecho
+- [ ] Hecho (falta Railway + dominio propio)
 
 ---
 
@@ -278,19 +287,27 @@ pero van a `#` — no hay páginas reales. Ya estás cobrando de verdad
 con Mercado Pago y guardando teléfonos/nombres de clientes de
 terceros, así que esto importa.
 
-**No soy abogado y esto no es asesoramiento legal** — pero sí te
-puedo armar un borrador simple y honesto (qué datos se guardan, para
-qué se usan, que Mercado Pago procesa los pagos, cómo pedir que se
-borren tus datos, etc.) mejor que no tener nada. Un abogado que lo
-revise después es lo ideal, pero no bloqueante para arrancar con algo
-real en vez de un link muerto.
+**No soy abogado y esto no es asesoramiento legal** — armé un borrador
+simple y honesto (`terminos.html` y `privacidad.html`): qué datos se
+guardan y de quién (comercio y clientes del comercio), con quién se
+comparten (Supabase, Mercado Pago, WhatsApp/Meta, Google si usás login
+o Calendar, Vercel/Railway), cómo pedir que se borren, planes y
+precios reales, etc. Los links del footer del landing ya apuntan ahí
+en vez de a `#`.
 
-**Qué necesito de vos:** un ok para que te arme ese borrador (te lo
-muestro antes de publicarlo, obviamente), o si preferís conseguirlo
-por tu cuenta.
+**Lo que falta de tu parte:**
+1. **Leerlo entero antes de confiar en él** — es un borrador honesto
+   sobre cómo funciona Clavis hoy, no algo revisado por un abogado.
+2. Reemplazar `hola@clavis.ar` (el email de contacto que puse como
+   placeholder en las dos páginas) por tu email de contacto real —
+   buscá "hola@clavis.ar" en `terminos.html` y `privacidad.html`.
+3. Si tenés forma de que un abogado lo revise en algún momento,
+   mejor, pero no es bloqueante para tenerlo publicado en vez de un
+   link muerto.
 
-- [ ] Decidido: quién lo redacta
-- [ ] Páginas reales publicadas, links del footer actualizados
+- [x] Redactado (borrador, no revisado por abogado)
+- [x] Páginas reales publicadas, links del footer actualizados
+- [ ] Email de contacto real (reemplazar el placeholder)
 
 ---
 
@@ -423,11 +440,21 @@ conversacional (V2)" — resumen acá:
 - El sistema de recordatorios actual (QR) sigue como está, conviven
   sin problema.
 
-**Lo que falta de tu parte, en orden:**
-1. Confirmar los precios actuales de Meta antes de cerrar el pricing
-   de los planes — los que citó la otra IA ($0.015-0.02 USD por
-   conversación excedente) pueden estar desactualizados. Mirar
-   [developers.facebook.com/docs/whatsapp/pricing](https://developers.facebook.com/docs/whatsapp/pricing).
+**Ya investigué esta parte (2026-09-22)** — resumen, detalle completo en
+`CLAUDE.md`: el esquema de precios que citó la otra IA está
+desactualizado. Meta pasó de cobrar "por conversación" a **"por
+mensaje"** en julio 2025. Bajo el esquema nuevo, los mensajes que no
+son plantilla (o sea, casi toda la conversación real del bot: cliente
+escribe, bot responde) **son gratis sin tope** — mejor que el 1.000/mes
+gratis que se manejaba antes. Solo se cobran las plantillas
+(recordatorios proactivos tipo Utility, o Marketing), y el monto
+exacto en pesos argentinos está en un rate card que pide login en Meta
+Business Manager — no lo pude sacar sin esa cuenta.
+
+**Lo que sigue de tu parte:**
+1. Cuando crees el Business Manager de Meta (paso 2 de abajo),
+   descargá el rate card de ahí para tener el número exacto en ARS de
+   las plantillas Utility — es el único costo real que falta precisar.
 2. Cuando quieras arrancar el bot de verdad: crear/verificar el
    Business Manager de Meta, dar de alta el número nuevo dedicado vía
    Embedded Signup, y elegir el proveedor de LLM (Gemini Flash o
@@ -437,7 +464,7 @@ conversacional (V2)" — resumen acá:
    function calling, tabla de estado de conversación) — es un feature
    grande, no lo arranco sin que me lo pidas explícitamente.
 
-- [ ] Precios de Meta confirmados
+- [x] Precios de Meta investigados (falta el número exacto en ARS, necesita tu cuenta de Business Manager)
 - [ ] Listo para planificar la construcción del bot
 
 ---
@@ -450,11 +477,11 @@ conversacional (V2)" — resumen acá:
 | 2 | Conectar WhatsApp (QR) | ⬜ |
 | 3 | Probar flujo completo real | ⬜ |
 | 4 | Decidir gate de trial/plan | ⬜ |
-| 5 | Deploy (`DEPLOY.md`) | ⬜ |
+| 5 | Deploy (`DEPLOY.md`) | 🟡 Vercel online, falta Railway + dominio |
 | 6 | Login con Google (`SETUP.md`) | ✅ (falta probar cuenta ajena) |
-| 7 | Captcha real (Turnstile) | ⬜ |
-| 8 | Términos y Privacidad | ⬜ |
+| 7 | Captcha real (Turnstile) | ⬜ (necesita que crees la cuenta de Cloudflare) |
+| 8 | Términos y Privacidad | ✅ borrador publicado (falta tu email real) |
 | 9 | Renombrar comercio de prueba | ⬜ |
 | 10 | Decisión sucursales/Cadena | ⬜ |
 | 11 | Renombrar `peluqueros` (multi-rubro) | ⬜ decisión pendiente |
-| 12 | Bot WhatsApp V2 — confirmar precios Meta | ⬜ |
+| 12 | Bot WhatsApp V2 — confirmar precios Meta | ✅ investigado (falta ARS exacto) |

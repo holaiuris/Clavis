@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Política de Privacidad — Clavis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html { overflow-x: hidden; }
+  body { margin: 0; background: #F2F6F8; color: #243E4B; font-family: "Poppins", system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; max-width: 100%; }
+  * { box-sizing: border-box; }
+  a { color: #4A8AA8; }
+  h1, h2 { font-family: "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; }
+  header { background: #fff; border-bottom: 1px solid #DCE7EB; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 18px 24px; }
+  main.wrap { padding: 48px 24px 80px; }
+  h1 { font-size: 32px; font-weight: 800; margin: 0 0 6px; }
+  .fecha { color: #5B7482; font-size: 14px; margin: 0 0 40px; }
+  h2 { font-size: 20px; font-weight: 700; margin: 36px 0 10px; }
+  p, li { font-size: 15.5px; line-height: 1.65; color: #243E4B; }
+  ul { padding-left: 22px; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0 20px; font-size: 14.5px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #E6EEF1; vertical-align: top; }
+  th { color: #5B7482; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .aviso { background: #FFF7D4; border: 1px solid #F3E3A6; border-radius: 14px; padding: 16px 18px; font-size: 14px; margin-bottom: 36px; }
+  footer { text-align: center; padding: 30px 24px; font-size: 13px; color: #5B7482; }
+</style>
+</head>
+<body>
+<header><div class="wrap"><a href="index.html" style="display:flex;align-items:center"><img src="assets/logo-clavis.svg" alt="Clavis" style="height:30px;width:auto" /></a></div></header>
+
+<main class="wrap">
+  <h1>Política de Privacidad</h1>
+  <p class="fecha">Última actualización: 22 de septiembre de 2026</p>
+
+  <div class="aviso">
+    Este documento es un borrador redactado para que Clavis tenga
+    una política real en vez de un link muerto — describe con
+    honestidad qué datos se guardan y para qué, en base al
+    funcionamiento actual del sistema. No reemplaza el asesoramiento
+    de un abogado especializado en protección de datos (en Argentina,
+    Ley 25.326).
+  </div>
+
+  <h2>1. Quiénes somos</h2>
+  <p>Clavis (<strong>clavis.ar</strong>) es una plataforma de gestión
+  de turnos para comercios de servicios. Esta política aplica tanto a
+  los <strong>comercios</strong> que usan Clavis para gestionar su
+  agenda como a los <strong>clientes de esos comercios</strong> que
+  reservan un turno a través del link público de reserva.</p>
+
+  <h2>2. Qué datos guardamos</h2>
+  <table>
+    <tr><th>De quién</th><th>Qué</th><th>Para qué</th></tr>
+    <tr>
+      <td>Del comercio (vos, si tenés una cuenta)</td>
+      <td>Email, contraseña (o login con Google), nombre del comercio,
+      teléfono, color/logo si los cargaste, servicios, horarios,
+      profesionales.</td>
+      <td>Hacer funcionar tu cuenta y tu agenda.</td>
+    </tr>
+    <tr>
+      <td>De los clientes del comercio</td>
+      <td>Nombre y teléfono, cargados por el comercio o por el cliente
+      mismo al reservar en el link público.</td>
+      <td>Identificar quién tiene cada turno, mandar recordatorios y
+      avisos por WhatsApp, mostrar historial ("cliente desde X") al
+      comercio.</td>
+    </tr>
+    <tr>
+      <td>Turnos</td>
+      <td>Fecha, horario, servicio elegido, si asistió o no.</td>
+      <td>El corazón de la agenda.</td>
+    </tr>
+  </table>
+
+  <h2>3. Con quién compartimos datos</h2>
+  <p>No vendemos datos a nadie. Usamos estos proveedores para operar
+  Clavis, cada uno con acceso solo a lo que necesita para su función:</p>
+  <ul>
+    <li><strong>Supabase</strong> — aloja la base de datos y maneja el
+    login. Es quien realmente guarda toda la información de arriba.</li>
+    <li><strong>Mercado Pago</strong> — procesa los pagos de la
+    suscripción. Clavis nunca ve ni guarda el número de tu tarjeta.</li>
+    <li><strong>WhatsApp / Meta</strong> — si el comercio activó
+    recordatorios, los mensajes salen a través de WhatsApp.</li>
+    <li><strong>Google</strong> — si elegís loguearte con Google, o si
+    conectás la sincronización con Google Calendar (ambas opcionales),
+    compartimos lo mínimo necesario para esas dos funciones
+    específicas.</li>
+    <li><strong>Vercel / Railway</strong> — alojan el sitio web y los
+    procesos que mandan los WhatsApp. Ven el tráfico técnico
+    (requests), no acceden a la base de datos directamente.</li>
+  </ul>
+
+  <h2>4. Cookies y almacenamiento local</h2>
+  <p>Clavis usa el almacenamiento local del navegador (localStorage)
+  únicamente para mantener tu sesión iniciada — no usamos cookies de
+  seguimiento ni analíticas de terceros hoy.</p>
+
+  <h2>5. Cuánto tiempo guardamos los datos</h2>
+  <p>Mientras tu cuenta esté activa, guardamos los datos necesarios
+  para que la agenda funcione (incluido el historial de turnos
+  pasados, para las métricas). Si cancelás tu cuenta y pedís que se
+  borren tus datos y los de tus clientes, lo hacemos — ver el punto
+  siguiente.</p>
+
+  <h2>6. Tus derechos (y los de tus clientes)</h2>
+  <p>Podés pedirnos en cualquier momento: ver qué datos tenemos
+  guardados sobre vos o tu comercio, corregirlos, o borrarlos por
+  completo. Si sos cliente de un comercio que usa Clavis y querés que
+  se borren tus datos, el pedido más directo es al comercio mismo (es
+  quien los cargó), pero también podés escribirnos a nosotros y lo
+  gestionamos.</p>
+  <p>Contacto: <a href="mailto:hola@clavis.ar">hola@clavis.ar</a>
+  (completar con el email de contacto real antes de publicar).</p>
+
+  <h2>7. Menores de edad</h2>
+  <p>Clavis no está dirigido a menores de edad. Los datos de clientes
+  que carga un comercio son responsabilidad de ese comercio.</p>
+
+  <h2>8. Cambios a esta política</h2>
+  <p>Si cambiamos esta política de forma importante, lo vamos a avisar
+  por el medio de contacto que tengamos de tu cuenta.</p>
+</main>
+
+<footer><div class="wrap"><a href="index.html">← Volver a Clavis</a></div></footer>
+</body>
+</html>

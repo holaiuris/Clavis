@@ -410,11 +410,32 @@ real (solo le escribe a gente con turno confirmado, no manda mensajes
 fríos) y no hace falta migrarlo solo por prolijidad; convive con el
 número nuevo del bot sin problema.
 
-Pendiente de verificar antes de fijar precios: los montos de Meta
-($0.015-0.02 USD por conversación excedente, cupo de conversaciones
-gratis por cuenta) cambian de tanto en tanto — confirmar en
-[developers.facebook.com/docs/whatsapp/pricing](https://developers.facebook.com/docs/whatsapp/pricing)
-antes de asumirlos como definitivos para el pricing de Clavis.
+**Precios de Meta verificados (2026-09-22)** — el esquema que citaba la
+conversación con la otra IA ($0.015-0.02 USD por conversación
+excedente, cupo de 1.000 conversaciones gratis/mes) está **desactualizado**:
+Meta cambió el modelo de "por conversación" a **"por mensaje"** el 1 de
+julio de 2025. Bajo el modelo nuevo:
+- **Los mensajes que no son plantilla (non-template) son gratis**
+  dentro de una ventana de servicio abierta — esto es lo que usaría
+  casi toda la conversación del bot (el cliente escribe, el bot
+  responde). Mejor que el esquema viejo: no hay tope de 1.000/mes, es
+  gratis sin límite mientras sea respuesta dentro de la ventana.
+- Lo único que se cobra son **plantillas (templates) entregadas**:
+  Marketing (siempre se cobra), Utility (gratis dentro de la ventana
+  de servicio, se cobra fuera — este es el caso de los recordatorios
+  proactivos), Authentication (se cobra, con descuentos por volumen).
+- El monto exacto varía por categoría y país del destinatario.
+  Argentina tiene tarifas en ARS desde abril 2026, pero el monto
+  puntual está en un rate card (CSV/PDF) que pide login en Meta
+  Business Manager — no lo pude confirmar sin esa cuenta.
+- Encontré referencias de blogs de terceros (no de Meta) a un cambio
+  para el 1 de octubre de 2026 donde se empezaría a cobrar también las
+  respuestas de servicio — la documentación oficial de Meta que
+  revisé (fecha de esta nota) **no confirma eso**, sigue diciendo que
+  las respuestas de servicio son gratis. Vale la pena chequearlo de
+  nuevo más cerca de esa fecha antes de asumir nada.
+
+Fuente: [developers.facebook.com/documentation/business-messaging/whatsapp/pricing](https://developers.facebook.com/documentation/business-messaging/whatsapp/pricing).
 
 Cuando se construya, el bot debería reusar `generar_huecos_disponibles`
 para ofrecer horarios por chat (va a necesitar saber con qué profesional
