@@ -8,8 +8,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  html { scroll-behavior: smooth; }
-  body { margin: 0; background: #ffffff; color: #243E4B; font-family: "Poppins", system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  /* overflow-x:hidden solo en body no alcanza en Safari de iOS — hay
+     que ponerlo también en html, si no el scroll horizontal (por los
+     círculos decorativos que sobresalen del viewport en el hero y el
+     CTA final) se sigue colando en el celular. */
+  html { scroll-behavior: smooth; overflow-x: hidden; }
+  body { margin: 0; background: #ffffff; color: #243E4B; font-family: "Poppins", system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; max-width: 100%; }
   * { box-sizing: border-box; }
   a { color: #243E4B; text-decoration: none; }
   a:hover { color: #6EABC7; }

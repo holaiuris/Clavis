@@ -418,12 +418,19 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
     height: auto;
     overflow-y: visible;
   }
-  .sidebar-comercio { margin-top: 0; }
+  /* El menú entero (logo, comercio, nav, plan, cerrar sesión) va
+     ANTES que el contenido en el DOM (mismo .shell de siempre) — en
+     desktop no importa, pero en un celular angosto eso significaba
+     una pantalla entera de "chrome" antes de ver un solo turno. Se
+     compacta todo lo que se pueda sin sacar información real. */
+  .sidebar-comercio { margin-top: 0; padding: 8px 10px; font-size: 12.5px; }
   .sidebar-nav { flex-direction: row; flex-wrap: wrap; gap: 6px; }
-  .nav-item { width: auto; white-space: nowrap; flex-shrink: 0; }
+  .nav-item { width: auto; white-space: nowrap; flex-shrink: 0; padding: 7px 10px; font-size: 13px; }
   .sidebar-footer { margin-top: 0; flex-direction: row; align-items: stretch; }
-  .sidebar-plan { flex: 1; }
-  .sidebar-footer > .secondary { flex-shrink: 0; align-self: center; }
+  .sidebar-plan { flex: 1; padding: 8px 10px; }
+  .sidebar-plan-dias { font-size: 13px; margin: 1px 0 6px; }
+  .sidebar-plan button { padding: 6px 8px; }
+  .sidebar-footer > .secondary { flex-shrink: 0; align-self: center; padding: 8px 12px; font-size: 12.5px; }
   .content { padding: 18px 16px 40px; }
   .content-header h2 { font-size: 25px; }
   .login-aside { padding: 90px 24px 28px; }
@@ -434,6 +441,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 /* Agenda                                                        */
 /* ------------------------------------------------------------ */
 .agenda-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+.agenda-acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
 
 .date-nav {
   display: flex;
@@ -937,4 +945,44 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
+}
+
+/* ------------------------------------------------------------ */
+/* Ajustes de mobile que necesitan ganarle a reglas base de más   */
+/* abajo (.chip-row, .dia-row, etc.) — van al final del archivo   */
+/* a propósito: con la misma especificidad, en CSS gana la última */
+/* declarada, sin importar si está dentro de un @media que ya     */
+/* matcheaba antes. Puesto arriba, esto quedaba siempre pisado.   */
+/* ------------------------------------------------------------ */
+@media (max-width: 720px) {
+  /* Los chip-row (profesionales, filtros de estado) se amontonaban
+     en varias filas apiladas en vez de una — más compactos y en una
+     sola fila con scroll horizontal, como la tira de días de
+     reservar.html. */
+  .chip-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+    margin-bottom: 14px;
+  }
+  .chip { flex-shrink: 0; padding: 6px 12px; font-size: 12.5px; }
+
+  /* Agenda: "Imprimir"/"+ Nuevo turno" quedan recién después de la
+     lista de turnos — lo primero que hay que ver en el celular es la
+     agenda del día, no las acciones secundarias. */
+  .agenda-main { display: flex; flex-direction: column; }
+  .agenda-toolbar { order: 1; }
+  .agenda-print-header { order: 2; }
+  .chip-row-profesionales { order: 3; }
+  .chip-row-estado { order: 4; }
+  .agenda-list { order: 5; }
+  .agenda-acciones { order: 6; margin-top: 14px; }
+
+  /* Horarios: cada fila de "Días de atención" quedaba muy alta —
+     compacta el switch, el nombre del día y esconde "X turnos esta
+     semana" (dato secundario) para que el scroll sea razonable. */
+  .dia-row { padding: 9px 0; gap: 10px; }
+  .dia-row .dia-nombre { width: 68px; font-size: 13.5px; }
+  .dia-cant { display: none; }
 }

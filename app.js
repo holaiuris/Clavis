@@ -914,15 +914,17 @@ function renderAgendaView() {
           </div>
           <input type="date" id="fecha-input" value="${state.fecha}" style="max-width:150px" />
           ${state.servicios.length ? `<select id="servicio-select">${serviciosOptions}</select>` : `<span class="hint">Agregá un servicio en Horarios</span>`}
-          <button type="button" class="secondary" id="btn-imprimir-agenda">Imprimir</button>
-          <button type="button" id="btn-nuevo-turno">+ Nuevo turno</button>
         </div>
         <div class="agenda-print-header">
           <h2>${escapeHtml(state.peluquero.nombre)} — Agenda del ${formatFechaLarga(state.fecha)}</h2>
         </div>
-        <div class="chip-row">${profesionalChips}</div>
-        <div class="chip-row">${estadoChips}</div>
+        <div class="chip-row chip-row-profesionales">${profesionalChips}</div>
+        <div class="chip-row chip-row-estado">${estadoChips}</div>
         <div class="agenda-list">${filasHtml}</div>
+        <div class="agenda-acciones">
+          <button type="button" class="secondary" id="btn-imprimir-agenda">Imprimir</button>
+          <button type="button" id="btn-nuevo-turno">+ Nuevo turno</button>
+        </div>
       </div>
       <div class="agenda-sidebar">
         ${resumenHtml}
