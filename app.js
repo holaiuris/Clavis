@@ -26,6 +26,8 @@ const state = {
   huecos: [],
   turnos: [],
   agendaFiltro: "todos", // todos | confirmado | atendido | ausente | bloqueado
+  agendaModo: "dia", // dia | mes
+  mesResumen: {}, // { 'YYYY-MM-DD': cantidad de turnos ocupados } del mes que se está mirando en modo "mes"
   view: "agenda", // agenda | clientes | metricas | horarios
   clientes: [],
   clientesQuery: "",
@@ -264,6 +266,35 @@ async function loadTablero() {
     if (error) throw error;
     state.huecos = data || [];
   }
+}
+
+// Cuenta de turnos ocupados por día para el mes que contiene state.fecha
+// — alimenta la grilla de "vista de mes" de la Agenda. Solo cuenta
+// 'ocupado' (turnos reales de cliente), no 'bloqueado' — la grilla es
+// para ver de un vistazo qué tan ocupado está cada día, no para
+// reflejar bloqueos internos.
+async function loadMesResumen() {
+  state.mesResumen = {};
+  if (!state.profesionalId) return;
+
+  const base = new Date(state.fecha + "T00:00:00");
+  const primerDia = isoDate(new Date(base.getFullYear(), base.getMonth(), 1));
+  const ultimoDia = isoDate(new Date(base.getFullYear(), base.getMonth() + 1, 0));
+
+  const { data, error } = await db
+    .from("turnos")
+    .select("fecha")
+    .eq("profesional_id", state.profesionalId)
+    .eq("estado", "ocupado")
+    .gte("fecha", primerDia)
+    .lte("fecha", ultimoDia);
+  if (error) throw error;
+
+  const resumen = {};
+  (data || []).forEach((t) => {
+    resumen[t.fecha] = (resumen[t.fecha] || 0) + 1;
+  });
+  state.mesResumen = resumen;
 }
 
 // Busca un cliente existente del comercio por teléfono (o por nombre si
@@ -627,6 +658,55 @@ function estadoFiltroTurno(t) {
   return "confirmado";
 }
 
+// Grilla del mes que contiene state.fecha — pensada como una vista
+// "de un vistazo" (cuántos turnos hay cada día), no como reemplazo de
+// la vista de día: tocar un día lleva directo al detalle de ese día.
+function renderMesGrid() {
+  const base = new Date(state.fecha + "T00:00:00");
+  const anio = base.getFullYear();
+  const mes = base.getMonth();
+  const nombreMes = base.toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+  const primerDia = new Date(anio, mes, 1);
+  const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+  // Lunes=0 ... Domingo=6, misma convención que DIAS_ORDEN — alinea la
+  // grilla con el header de días de abajo.
+  const offsetInicio = (primerDia.getDay() + 6) % 7;
+
+  const celdas = [];
+  for (let i = 0; i < offsetInicio; i++) celdas.push(null);
+  for (let d = 1; d <= diasEnMes; d++) celdas.push(d);
+  while (celdas.length % 7 !== 0) celdas.push(null);
+
+  const hoy = todayISO();
+  const celdasHtml = celdas
+    .map((d) => {
+      if (d === null) return `<div class="mes-celda vacia"></div>`;
+      const fechaCelda = isoDate(new Date(anio, mes, d));
+      const cant = state.mesResumen[fechaCelda] || 0;
+      const clases = ["mes-celda"];
+      if (fechaCelda === hoy) clases.push("hoy");
+      if (fechaCelda === state.fecha) clases.push("activa");
+      return `
+      <button type="button" class="${clases.join(" ")}" data-mes-dia="${fechaCelda}">
+        <span class="mes-num">${d}</span>
+        ${cant ? `<span class="mes-badge">${cant}</span>` : ""}
+      </button>`;
+    })
+    .join("");
+
+  return `
+    <div class="mes-nav">
+      <button type="button" id="mes-prev" aria-label="Mes anterior">‹</button>
+      <span>${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)}</span>
+      <button type="button" id="mes-next" aria-label="Mes siguiente">›</button>
+    </div>
+    <div class="mes-grid mes-grid-header">
+      ${DIAS_ORDEN.map((d) => `<div class="mes-dia-nombre">${DIAS_LETRA[d]}</div>`).join("")}
+    </div>
+    <div class="mes-grid">${celdasHtml}</div>
+  `;
+}
+
 function renderAgendaView() {
   if (!state.profesionales.length) {
     return `<div class="content-header"><h2>Agenda</h2></div><div class="empty-msg">Agregá al menos un profesional en Horarios para ver la agenda.</div>`;
@@ -813,46 +893,89 @@ function renderAgendaView() {
       }
     </div>`;
 
+  const esModoMes = state.agendaModo === "mes";
+
   return `
     <div class="content-header">
-      <h2>Agenda del día</h2>
-      <p class="sub">${state.turnos.length} turno${state.turnos.length === 1 ? "" : "s"} · ${libres.length} hueco${libres.length === 1 ? "" : "s"} libre${libres.length === 1 ? "" : "s"}${pctOcupado === null ? "" : ` · ${pctOcupado}% ocupado`}</p>
+      <h2>Agenda ${esModoMes ? "del mes" : "del día"}</h2>
+      <p class="sub">${
+        esModoMes
+          ? "Tocá un día para ver el detalle."
+          : `${state.turnos.length} turno${state.turnos.length === 1 ? "" : "s"} · ${libres.length} hueco${libres.length === 1 ? "" : "s"} libre${libres.length === 1 ? "" : "s"}${pctOcupado === null ? "" : ` · ${pctOcupado}% ocupado`}`
+      }</p>
+    </div>
+    <div class="chip-row">
+      <button type="button" class="chip ${esModoMes ? "" : "active"}" data-agenda-modo="dia">Día</button>
+      <button type="button" class="chip ${esModoMes ? "active" : ""}" data-agenda-modo="mes">Mes</button>
     </div>
     <div class="agenda-layout">
       <div class="agenda-main">
-        <div class="agenda-toolbar">
-          <div class="date-nav">
-            <button type="button" id="fecha-prev" aria-label="Día anterior">‹</button>
-            <span>${formatFechaLarga(state.fecha)}</span>
-            <button type="button" id="fecha-next" aria-label="Día siguiente">›</button>
+        ${
+          esModoMes
+            ? `
+          <div class="chip-row">${profesionalChips}</div>
+          ${renderMesGrid()}
+        `
+            : `
+          <div class="agenda-toolbar">
+            <div class="date-nav">
+              <button type="button" id="fecha-prev" aria-label="Día anterior">‹</button>
+              <span>${formatFechaLarga(state.fecha)}</span>
+              <button type="button" id="fecha-next" aria-label="Día siguiente">›</button>
+            </div>
+            <input type="date" id="fecha-input" value="${state.fecha}" style="max-width:150px" />
+            ${state.servicios.length ? `<select id="servicio-select">${serviciosOptions}</select>` : `<span class="hint">Agregá un servicio en Horarios</span>`}
+            <button type="button" class="secondary" id="btn-imprimir-agenda">Imprimir</button>
+            <button type="button" id="btn-nuevo-turno">+ Nuevo turno</button>
           </div>
-          <input type="date" id="fecha-input" value="${state.fecha}" style="max-width:150px" />
-          ${state.servicios.length ? `<select id="servicio-select">${serviciosOptions}</select>` : `<span class="hint">Agregá un servicio en Horarios</span>`}
-          <button type="button" class="secondary" id="btn-imprimir-agenda">Imprimir</button>
-          <button type="button" id="btn-nuevo-turno">+ Nuevo turno</button>
-        </div>
-        <div class="agenda-print-header">
-          <h2>${escapeHtml(state.peluquero.nombre)} — Agenda del ${formatFechaLarga(state.fecha)}</h2>
-        </div>
-        <div class="chip-row">${profesionalChips}</div>
-        <div class="chip-row">${estadoChips}</div>
-        <div class="agenda-list">${filasHtml}</div>
+          <div class="agenda-print-header">
+            <h2>${escapeHtml(state.peluquero.nombre)} — Agenda del ${formatFechaLarga(state.fecha)}</h2>
+          </div>
+          <div class="chip-row">${profesionalChips}</div>
+          <div class="chip-row">${estadoChips}</div>
+          <div class="agenda-list">${filasHtml}</div>
+        `
+        }
       </div>
-      <div class="agenda-sidebar">
-        ${resumenHtml}
-        ${proximoTurnoHtml}
-        ${listaEsperaHtml}
-      </div>
+      ${
+        esModoMes
+          ? ""
+          : `
+        <div class="agenda-sidebar">
+          ${resumenHtml}
+          ${proximoTurnoHtml}
+          ${listaEsperaHtml}
+        </div>
+      `
+      }
     </div>
   `;
 }
 
 function wireAgendaView() {
-  document.getElementById("fecha-input").addEventListener("change", async (e) => {
-    state.fecha = e.target.value;
-    await withLoading(loadTablero);
-    renderApp();
+  // Día y Mes comparten los chips de profesional, pero cada modo
+  // recarga datos distintos — este helper evita bifurcar cada
+  // listener que pueda dispararse en cualquiera de los dos.
+  const reloadAgendaData = () => (state.agendaModo === "mes" ? loadMesResumen() : loadTablero());
+
+  document.querySelectorAll("[data-agenda-modo]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const modo = btn.dataset.agendaModo;
+      if (modo === state.agendaModo) return;
+      state.agendaModo = modo;
+      await withLoading(reloadAgendaData);
+      renderApp();
+    });
   });
+
+  const fechaInput = document.getElementById("fecha-input");
+  if (fechaInput) {
+    fechaInput.addEventListener("change", async (e) => {
+      state.fecha = e.target.value;
+      await withLoading(loadTablero);
+      renderApp();
+    });
+  }
 
   const shiftFecha = async (days) => {
     const d = new Date(state.fecha + "T00:00:00");
@@ -861,10 +984,35 @@ function wireAgendaView() {
     await withLoading(loadTablero);
     renderApp();
   };
-  document.getElementById("fecha-prev").addEventListener("click", () => shiftFecha(-1));
-  document.getElementById("fecha-next").addEventListener("click", () => shiftFecha(1));
+  const btnFechaPrev = document.getElementById("fecha-prev");
+  if (btnFechaPrev) btnFechaPrev.addEventListener("click", () => shiftFecha(-1));
+  const btnFechaNext = document.getElementById("fecha-next");
+  if (btnFechaNext) btnFechaNext.addEventListener("click", () => shiftFecha(1));
 
-  document.getElementById("btn-imprimir-agenda").addEventListener("click", () => window.print());
+  const btnImprimir = document.getElementById("btn-imprimir-agenda");
+  if (btnImprimir) btnImprimir.addEventListener("click", () => window.print());
+
+  const shiftMes = async (meses) => {
+    const d = new Date(state.fecha + "T00:00:00");
+    d.setDate(1); // evita que un día 31 "salte" un mes corto al sumar meses
+    d.setMonth(d.getMonth() + meses);
+    state.fecha = isoDate(d);
+    await withLoading(loadMesResumen);
+    renderApp();
+  };
+  const btnMesPrev = document.getElementById("mes-prev");
+  if (btnMesPrev) btnMesPrev.addEventListener("click", () => shiftMes(-1));
+  const btnMesNext = document.getElementById("mes-next");
+  if (btnMesNext) btnMesNext.addEventListener("click", () => shiftMes(1));
+
+  document.querySelectorAll("[data-mes-dia]").forEach((celda) => {
+    celda.addEventListener("click", async () => {
+      state.fecha = celda.dataset.mesDia;
+      state.agendaModo = "dia";
+      await withLoading(loadTablero);
+      renderApp();
+    });
+  });
 
   const servicioSelect = document.getElementById("servicio-select");
   if (servicioSelect) {
@@ -878,7 +1026,7 @@ function wireAgendaView() {
   document.querySelectorAll("[data-profesional]").forEach((chip) => {
     chip.addEventListener("click", async () => {
       state.profesionalId = chip.dataset.profesional;
-      await withLoading(loadTablero);
+      await withLoading(reloadAgendaData);
       renderApp();
     });
   });

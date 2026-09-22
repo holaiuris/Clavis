@@ -486,6 +486,82 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 .agenda-sidebar .metrics-card { padding: 18px; }
 .agenda-sidebar .metrics-card h4 { margin-bottom: 12px; }
 
+/* ---------------- Agenda: vista de mes ---------------- */
+.mes-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 14px;
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 700;
+}
+.mes-nav button {
+  background: var(--panel);
+  color: var(--text);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 10px;
+}
+.mes-nav button::after { background-color: var(--border); }
+
+.mes-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.mes-grid-header {
+  margin-bottom: 6px;
+}
+.mes-dia-nombre {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mes-celda {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: var(--panel);
+  border: 1px solid var(--border-2);
+  border-radius: 12px;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+.mes-celda:hover { border-color: var(--accent); opacity: 1; }
+.mes-celda.vacia { background: transparent; border-color: transparent; cursor: default; }
+.mes-celda.hoy { border-color: var(--detail-dark); border-width: 2px; }
+.mes-celda.activa { background: var(--ink); color: #fff; border-color: var(--ink); }
+.mes-celda.activa .mes-badge { background: var(--detail); color: var(--ink); }
+
+.mes-num { font-size: 14px; }
+.mes-badge {
+  background: var(--accent-dark);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 1px 6px;
+  min-width: 16px;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .mes-dia-nombre { font-size: 10px; }
+  .mes-num { font-size: 12px; }
+}
+
 .metrics-card.resumen-hoy { background: var(--ink); color: #fff; border-color: var(--ink); }
 .metrics-card.resumen-hoy .hint { color: rgba(255, 255, 255, 0.7); }
 .resumen-pct { font-family: var(--display); font-size: 38px; font-weight: 800; line-height: 1; display: flex; align-items: baseline; gap: 8px; }
