@@ -491,25 +491,32 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 10px;
   margin-bottom: 14px;
   font-family: var(--display);
-  font-size: 18px;
+  font-size: 14.5px;
   font-weight: 700;
+  text-align: center;
 }
+.mes-nav span { flex: 1; min-width: 0; }
 .mes-nav button {
   background: var(--panel);
   color: var(--text);
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
   padding: 0;
-  border-radius: 10px;
+  border-radius: 9px;
 }
 .mes-nav button::after { background-color: var(--border); }
 
 .mes-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  /* minmax(0, 1fr), no 1fr a secas: sin el mínimo en 0, cada columna
+     no puede achicarse más que el contenido de su celda (el badge de
+     cantidad), así que en un sidebar angosto la grilla entera se
+     desborda del panel en vez de acomodar las 7 columnas parejas. */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
 }
 .mes-grid-header {
@@ -526,7 +533,16 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 
 .mes-celda {
   position: relative;
-  aspect-ratio: 1;
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  /* El button base (style.css, la firma "escalón" de la marca) trae
+     padding: 11px 20px pensado para un CTA como "Guardar" — sin
+     resetearlo acá, esos 40px de padding horizontal no entraban en
+     los ~30px de una columna del calendario y forzaban el ancho de
+     la celda a crecer por encima de su columna del grid, desbordando
+     la tarjeta entera hacia la derecha. */
+  padding: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -538,6 +554,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   color: var(--text);
   font-weight: 600;
   cursor: pointer;
+  overflow: hidden;
 }
 .mes-celda:hover { border-color: var(--accent); opacity: 1; }
 .mes-celda.vacia { background: transparent; border-color: transparent; cursor: default; }
