@@ -1946,6 +1946,7 @@ function renderHorariosView() {
           <span class="grow" id="link-reservas-texto" style="word-break:break-all;">${escapeHtml(linkReservas)}</span>
           <button type="button" class="secondary" id="btn-copiar-link">Copiar</button>
         </div>
+        <button type="button" class="secondary" id="btn-generar-qr" style="margin-top:10px; width:100%;">Generar QR para imprimir</button>
       </div>
     </div>
 
@@ -1973,6 +1974,85 @@ function renderHorariosView() {
 
     <div class="error-msg" id="horarios-error"></div>
   `;
+}
+
+// Genera el QR del link público con el logo de Clavis superpuesto al
+// centro. Error correction "H" (máxima redundancia, ~30%) a propósito
+// — es lo que permite taparle el centro con un logo sin que el QR
+// deje de leerse. Todo corre en el navegador (librería qrcode vía
+// CDN, ver app.html) — no hace falta un server para esto.
+async function abrirModalQR(url) {
+  openModal(`
+    <h3>QR para imprimir</h3>
+    <p class="hint">Tus clientes lo escanean y llegan directo a tu link de reservas.</p>
+    <div style="display:flex; justify-content:center; margin:16px 0;">
+      <div id="qr-target" style="width:220px; height:220px; border-radius:16px; overflow:hidden;"></div>
+    </div>
+    <div class="actions">
+      <button type="button" class="secondary" id="qr-close">Cerrar</button>
+      <button type="button" id="qr-descargar">Descargar PNG</button>
+    </div>
+    <div class="error-msg" id="qr-error"></div>
+  `);
+  document.getElementById("qr-close").addEventListener("click", closeModal);
+
+  const qrError = document.getElementById("qr-error");
+  let canvas;
+  try {
+    const target = document.getElementById("qr-target");
+    // La librería (qrcodejs) dibuja directo a un <canvas> que crea
+    // ella misma adentro del contenedor — lo generamos grande
+    // (480x480) para que el PNG final sirva para imprimir, y lo
+    // mostramos más chico con CSS en el modal.
+    new QRCode(target, { text: url, width: 480, height: 480, correctLevel: QRCode.CorrectLevel.H });
+    canvas = target.querySelector("canvas");
+    if (!canvas) throw new Error("Este navegador no generó el QR en canvas.");
+
+    const logo = new Image();
+    logo.crossOrigin = "anonymous";
+    await new Promise((resolve, reject) => {
+      logo.onload = resolve;
+      logo.onerror = reject;
+      logo.src = "/assets/logo-clavis.svg";
+    });
+
+    const ctx = canvas.getContext("2d");
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    // Caja blanca redondeada detrás del logo, ~26% del ancho del QR —
+    // deliberadamente conservador (el margen de maniobra real de "H"
+    // ronda el 30%) para no arriesgar que algún lector falle.
+    const boxW = canvas.width * 0.26;
+    const boxH = boxW / (logo.naturalWidth / logo.naturalHeight);
+    const pad = 10;
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.roundRect(cx - boxW / 2 - pad, cy - boxH / 2 - pad, boxW + pad * 2, boxH + pad * 2, 10);
+    ctx.fill();
+    ctx.drawImage(logo, cx - boxW / 2, cy - boxH / 2, boxW, boxH);
+
+    // qrcodejs deja el <canvas> oculto y muestra en su lugar un <img>
+    // con una foto fija del QR — si se saca ese <img> y se muestra el
+    // canvas ANTES de dibujar el logo, la librería lo vuelve a tapar
+    // en algún punto mientras se esperaba que cargue el logo. Sacando
+    // el <img> y mostrando el canvas acá, al final (después de ya
+    // tener el logo dibujado encima), no hay margen para que eso pase.
+    const imgViejo = target.querySelector("img");
+    if (imgViejo) imgViejo.remove();
+    canvas.style.display = "block";
+    canvas.style.width = "220px";
+    canvas.style.height = "220px";
+
+    document.getElementById("qr-descargar").addEventListener("click", () => {
+      const a = document.createElement("a");
+      a.download = "clavis-qr-reservas.png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    });
+  } catch (err) {
+    console.error(err);
+    qrError.textContent = "No se pudo generar el QR.";
+  }
 }
 
 function wireHorariosView() {
@@ -2143,6 +2223,13 @@ function wireHorariosView() {
       } catch (err) {
         console.error(err);
       }
+    });
+  }
+
+  const btnGenerarQR = document.getElementById("btn-generar-qr");
+  if (btnGenerarQR) {
+    btnGenerarQR.addEventListener("click", () => {
+      abrirModalQR(document.getElementById("link-reservas-texto").textContent);
     });
   }
 

@@ -74,7 +74,7 @@ function aplicarMarca(peluquero) {
 
   const brand = document.getElementById("reservar-brand");
   if (peluquero.logo_url) {
-    brand.innerHTML = `<img src="${escapeHtml(peluquero.logo_url)}" alt="${escapeHtml(peluquero.nombre)}" style="height:34px;width:auto;border-radius:6px;" />`;
+    brand.innerHTML = `<img src="${escapeHtml(peluquero.logo_url)}" alt="${escapeHtml(peluquero.nombre)}" style="height:52px;width:auto;border-radius:6px;" />`;
   } else {
     // Sin logo propio: mostramos el nombre del comercio solo, sin el
     // isologo de Clavis — mezclar las dos marcas en la página de ESE
