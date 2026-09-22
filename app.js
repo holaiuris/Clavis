@@ -26,8 +26,7 @@ const state = {
   huecos: [],
   turnos: [],
   agendaFiltro: "todos", // todos | confirmado | atendido | ausente | bloqueado
-  agendaModo: "dia", // dia | mes
-  mesResumen: {}, // { 'YYYY-MM-DD': cantidad de turnos ocupados } del mes que se está mirando en modo "mes"
+  mesResumen: {}, // { 'YYYY-MM-DD': cantidad de turnos ocupados } del mes del mini-calendario en el sidebar
   view: "agenda", // agenda | clientes | metricas | horarios
   clientes: [],
   clientesQuery: "",
@@ -156,6 +155,7 @@ async function boot() {
     }
     await loadConfiguracion();
     await loadTablero();
+    await loadMesResumen();
     await loadListaEspera();
     renderApp();
     avisarVueltaDePago();
@@ -269,10 +269,10 @@ async function loadTablero() {
 }
 
 // Cuenta de turnos ocupados por día para el mes que contiene state.fecha
-// — alimenta la grilla de "vista de mes" de la Agenda. Solo cuenta
-// 'ocupado' (turnos reales de cliente), no 'bloqueado' — la grilla es
-// para ver de un vistazo qué tan ocupado está cada día, no para
-// reflejar bloqueos internos.
+// — alimenta el mini-calendario del sidebar de la Agenda. Solo cuenta
+// 'ocupado' (turnos reales de cliente), no 'bloqueado' — el
+// calendario es para ver de un vistazo qué tan ocupado está cada día,
+// no para reflejar bloqueos internos.
 async function loadMesResumen() {
   state.mesResumen = {};
   if (!state.profesionalId) return;
@@ -893,86 +893,60 @@ function renderAgendaView() {
       }
     </div>`;
 
-  const esModoMes = state.agendaModo === "mes";
+  const calendarioHtml = `
+    <div class="metrics-card">
+      <h4>Calendario</h4>
+      ${renderMesGrid()}
+    </div>`;
 
   return `
     <div class="content-header">
-      <h2>Agenda ${esModoMes ? "del mes" : "del día"}</h2>
-      <p class="sub">${
-        esModoMes
-          ? "Tocá un día para ver el detalle."
-          : `${state.turnos.length} turno${state.turnos.length === 1 ? "" : "s"} · ${libres.length} hueco${libres.length === 1 ? "" : "s"} libre${libres.length === 1 ? "" : "s"}${pctOcupado === null ? "" : ` · ${pctOcupado}% ocupado`}`
-      }</p>
-    </div>
-    <div class="chip-row">
-      <button type="button" class="chip ${esModoMes ? "" : "active"}" data-agenda-modo="dia">Día</button>
-      <button type="button" class="chip ${esModoMes ? "active" : ""}" data-agenda-modo="mes">Mes</button>
+      <h2>Agenda del día</h2>
+      <p class="sub">${state.turnos.length} turno${state.turnos.length === 1 ? "" : "s"} · ${libres.length} hueco${libres.length === 1 ? "" : "s"} libre${libres.length === 1 ? "" : "s"}${pctOcupado === null ? "" : ` · ${pctOcupado}% ocupado`}</p>
     </div>
     <div class="agenda-layout">
       <div class="agenda-main">
-        ${
-          esModoMes
-            ? `
-          <div class="chip-row">${profesionalChips}</div>
-          ${renderMesGrid()}
-        `
-            : `
-          <div class="agenda-toolbar">
-            <div class="date-nav">
-              <button type="button" id="fecha-prev" aria-label="Día anterior">‹</button>
-              <span>${formatFechaLarga(state.fecha)}</span>
-              <button type="button" id="fecha-next" aria-label="Día siguiente">›</button>
-            </div>
-            <input type="date" id="fecha-input" value="${state.fecha}" style="max-width:150px" />
-            ${state.servicios.length ? `<select id="servicio-select">${serviciosOptions}</select>` : `<span class="hint">Agregá un servicio en Horarios</span>`}
-            <button type="button" class="secondary" id="btn-imprimir-agenda">Imprimir</button>
-            <button type="button" id="btn-nuevo-turno">+ Nuevo turno</button>
+        <div class="agenda-toolbar">
+          <div class="date-nav">
+            <button type="button" id="fecha-prev" aria-label="Día anterior">‹</button>
+            <span>${formatFechaLarga(state.fecha)}</span>
+            <button type="button" id="fecha-next" aria-label="Día siguiente">›</button>
           </div>
-          <div class="agenda-print-header">
-            <h2>${escapeHtml(state.peluquero.nombre)} — Agenda del ${formatFechaLarga(state.fecha)}</h2>
-          </div>
-          <div class="chip-row">${profesionalChips}</div>
-          <div class="chip-row">${estadoChips}</div>
-          <div class="agenda-list">${filasHtml}</div>
-        `
-        }
-      </div>
-      ${
-        esModoMes
-          ? ""
-          : `
-        <div class="agenda-sidebar">
-          ${resumenHtml}
-          ${proximoTurnoHtml}
-          ${listaEsperaHtml}
+          <input type="date" id="fecha-input" value="${state.fecha}" style="max-width:150px" />
+          ${state.servicios.length ? `<select id="servicio-select">${serviciosOptions}</select>` : `<span class="hint">Agregá un servicio en Horarios</span>`}
+          <button type="button" class="secondary" id="btn-imprimir-agenda">Imprimir</button>
+          <button type="button" id="btn-nuevo-turno">+ Nuevo turno</button>
         </div>
-      `
-      }
+        <div class="agenda-print-header">
+          <h2>${escapeHtml(state.peluquero.nombre)} — Agenda del ${formatFechaLarga(state.fecha)}</h2>
+        </div>
+        <div class="chip-row">${profesionalChips}</div>
+        <div class="chip-row">${estadoChips}</div>
+        <div class="agenda-list">${filasHtml}</div>
+      </div>
+      <div class="agenda-sidebar">
+        ${resumenHtml}
+        ${proximoTurnoHtml}
+        ${listaEsperaHtml}
+        ${calendarioHtml}
+      </div>
     </div>
   `;
 }
 
 function wireAgendaView() {
-  // Día y Mes comparten los chips de profesional, pero cada modo
-  // recarga datos distintos — este helper evita bifurcar cada
-  // listener que pueda dispararse en cualquiera de los dos.
-  const reloadAgendaData = () => (state.agendaModo === "mes" ? loadMesResumen() : loadTablero());
-
-  document.querySelectorAll("[data-agenda-modo]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const modo = btn.dataset.agendaModo;
-      if (modo === state.agendaModo) return;
-      state.agendaModo = modo;
-      await withLoading(reloadAgendaData);
-      renderApp();
-    });
-  });
+  // La lista del día y el mini-calendario del sidebar comparten
+  // state.fecha — cualquier cosa que la cambie recarga los dos, así
+  // quedan siempre sincronizados (qué día está resaltado ahí, qué se
+  // ve acá). Es una query liviana (solo trae la columna fecha), no
+  // vale la pena distinguir cuándo hace falta y cuándo no.
+  const reloadAgenda = () => Promise.all([loadTablero(), loadMesResumen()]);
 
   const fechaInput = document.getElementById("fecha-input");
   if (fechaInput) {
     fechaInput.addEventListener("change", async (e) => {
       state.fecha = e.target.value;
-      await withLoading(loadTablero);
+      await withLoading(reloadAgenda);
       renderApp();
     });
   }
@@ -981,7 +955,7 @@ function wireAgendaView() {
     const d = new Date(state.fecha + "T00:00:00");
     d.setDate(d.getDate() + days);
     state.fecha = isoDate(d);
-    await withLoading(loadTablero);
+    await withLoading(reloadAgenda);
     renderApp();
   };
   const btnFechaPrev = document.getElementById("fecha-prev");
@@ -997,7 +971,7 @@ function wireAgendaView() {
     d.setDate(1); // evita que un día 31 "salte" un mes corto al sumar meses
     d.setMonth(d.getMonth() + meses);
     state.fecha = isoDate(d);
-    await withLoading(loadMesResumen);
+    await withLoading(reloadAgenda);
     renderApp();
   };
   const btnMesPrev = document.getElementById("mes-prev");
@@ -1008,8 +982,7 @@ function wireAgendaView() {
   document.querySelectorAll("[data-mes-dia]").forEach((celda) => {
     celda.addEventListener("click", async () => {
       state.fecha = celda.dataset.mesDia;
-      state.agendaModo = "dia";
-      await withLoading(loadTablero);
+      await withLoading(reloadAgenda);
       renderApp();
     });
   });
@@ -1026,7 +999,7 @@ function wireAgendaView() {
   document.querySelectorAll("[data-profesional]").forEach((chip) => {
     chip.addEventListener("click", async () => {
       state.profesionalId = chip.dataset.profesional;
-      await withLoading(reloadAgendaData);
+      await withLoading(reloadAgenda);
       renderApp();
     });
   });
