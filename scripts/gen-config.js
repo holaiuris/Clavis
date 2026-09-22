@@ -4,7 +4,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const { SUPABASE_URL, SUPABASE_ANON_KEY, PAYMENTS_API_URL } = process.env;
+const { SUPABASE_URL, SUPABASE_ANON_KEY, PAYMENTS_API_URL, CALENDAR_API_URL } = process.env;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error(
@@ -19,6 +19,7 @@ const contenido = `// Generado automáticamente por scripts/gen-config.js durant
 window.SUPABASE_URL = ${JSON.stringify(SUPABASE_URL)};
 window.SUPABASE_ANON_KEY = ${JSON.stringify(SUPABASE_ANON_KEY)};
 window.PAYMENTS_API_URL = ${JSON.stringify(PAYMENTS_API_URL || "")};
+window.CALENDAR_API_URL = ${JSON.stringify(CALENDAR_API_URL || "")};
 `;
 
 fs.writeFileSync(path.join(__dirname, "..", "config.js"), contenido);

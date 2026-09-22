@@ -17,6 +17,31 @@ un proceso siempre encendido con disco persistente (la sesión de
 WhatsApp vive en `server/wwebjs_auth/`) — eso no entra en el modelo
 serverless de Vercel.
 
+## Deploy liviano — solo para mostrar (sin `server/`)
+
+Si el objetivo es una URL pública para mostrarle la app a alguien —no
+un lanzamiento real todavía—, alcanza con la **sección 1 (Frontend en
+Vercel)** de abajo: repo en GitHub + proyecto en Vercel + las dos
+variables obligatorias (`SUPABASE_URL`/`SUPABASE_ANON_KEY`). Nada de
+`server/` en Railway, nada de dominio propio (Vercel da una URL
+`https://algo.vercel.app` al toque, sin esperar propagación de DNS).
+Es cuestión de minutos, no de horas.
+
+**Qué NO va a andar así** (esperable, no es un bug):
+- Recordatorios de WhatsApp y avisos al comercio (`server/index.js`
+  apagado) — no rompen nada, simplemente no salen.
+- Sync con Google Calendar (`server/calendar.js` apagado) — el botón
+  "Conectar" en Horarios va a fallar prolijamente.
+- "Activar plan" con Mercado Pago (`server/payments.js` apagado) —
+  mismo caso, error prolijo al tocar el botón, no un crash.
+- **El alta de comercios está cerrada** (self-signup desactivado) —
+  quien mire la demo no puede crearse una cuenta propia sola. O la
+  manejás vos por videollamada/pantalla compartida, o les das el
+  login de la cuenta de prueba que ya tenés (es la única vía hoy).
+
+Agregar `server/` (Railway) y el dominio `clavis.ar` es 100% agregable
+después sin rehacer nada de este paso — son piezas independientes.
+
 ## 0. Requisitos previos
 
 - El repo de Clavis pusheado a GitHub (ver más abajo si todavía no
@@ -63,6 +88,8 @@ git push -u origin main
      protegida por RLS, no pasa nada si viaja al navegador)
    - `PAYMENTS_API_URL` → dejalo en blanco por ahora, lo completás en
      el paso 3 una vez que sepas la URL de Railway.
+   - `CALENDAR_API_URL` → mismo criterio, en blanco hasta que
+     `server/calendar.js` esté deployado.
 7. **Deploy.**
 8. Una vez andando: **Settings → Domains** → agregá `clavis.ar` (y
    `www.clavis.ar` si lo querés) → Vercel te da los registros DNS
@@ -122,6 +149,11 @@ apuntando los dos a la carpeta `server/` pero con comandos distintos.
 **Authentication → URL Configuration** en el dashboard de Supabase:
 - **Site URL:** `https://clavis.ar`
 - **Redirect URLs:** agregar `https://clavis.ar/app.html`
+
+(En el "deploy liviano" de más arriba, sin dominio propio todavía,
+usá la URL que te dio Vercel en vez de `clavis.ar` — ej.
+`https://clavis-tu-usuario.vercel.app/app.html`. Cuando después
+sumes el dominio, agregá esa URL más sin borrar la de Vercel.)
 
 Sin esto, "Olvidé mi contraseña" y los links de confirmación de mail
 te van a mandar a `localhost`.
