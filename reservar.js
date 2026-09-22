@@ -13,9 +13,16 @@ const app = document.getElementById("reservar-app");
 
 const urlParams = new URLSearchParams(location.search);
 
+// Un rewrite (vercel.json: /r/:slug -> /reservar.html?slug=:slug) no
+// cambia lo que el navegador ve en `location` — la pestaña sigue
+// mostrando /r/<slug> tal cual, sin query string, así que
+// location.search nunca trae ?slug=. Lo que SÍ sigue viéndose es el
+// path original, así que si vinimos por /r/algo lo sacamos de ahí.
+const slugDelPath = location.pathname.match(/^\/r\/([a-z0-9-]+)\/?$/i);
+
 const state = {
   comercioId: urlParams.get("c"),
-  slug: urlParams.get("slug"),
+  slug: urlParams.get("slug") || (slugDelPath ? slugDelPath[1] : null),
   turnoGestionId: urlParams.get("turno"),
   turnoGestion: null,
   peluquero: null,
