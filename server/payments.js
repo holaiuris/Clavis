@@ -61,7 +61,7 @@ const mpClient = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN });
 
 // Pago único, plan fijo por ahora — si mañana hay más de un plan
 // pago, esto se vuelve un lookup por el plan que pida la app.
-const PLAN = { id: "comercio", nombre: "Comercio", precio: 14900 };
+const PLAN = { id: "comercio", nombre: "Comercio", precio: 19000 };
 
 const app = express();
 app.use(express.json());

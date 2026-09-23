@@ -325,6 +325,10 @@ async function findOrCreateCliente(nombre, telefono) {
 
 async function withLoading(fn) {
   state.loading = true;
+  // Repinta ya mismo para que la barra de progreso del topbar se vea
+  // durante la espera, no solo al terminar — antes `state.loading` se
+  // seteaba pero nada la reflejaba visualmente.
+  if (state.view) renderApp();
   try {
     await fn();
   } catch (err) {
@@ -344,6 +348,17 @@ function renderLogin() {
   app.innerHTML = `
     <div class="login-shell">
       <div class="login-aside">
+        <svg width="100%" height="100%" viewBox="0 0 700 900" preserveAspectRatio="xMidYMid slice" style="position:absolute;top:0;right:0;left:0;bottom:0;opacity:.9;z-index:0">
+          <path fill="#B4EEF5" fill-opacity="0.18" d="
+            M700,0 L700,900 L420,900
+            C420,830 560,830 560,740
+            C560,650 420,650 420,560
+            C420,470 560,470 560,380
+            C560,290 420,290 420,200
+            C420,110 560,110 560,20
+            C560,-20 640,-10 700,0
+            Z"></path>
+        </svg>
         <div class="brand"><img src="assets/logo-clavis-light.svg" alt="Clavis" /></div>
         <img class="login-illustration" src="assets/login-ilustracion.svg" alt="" />
         <h2>El cuaderno de turnos ya cumplió.</h2>
@@ -513,38 +528,66 @@ function renderSetup() {
 // ------------------------------------------------------------
 // Shell: sidebar + vista activa
 // ------------------------------------------------------------
+// Íconos trazo simple (mismo estilo que el mockup) — un <span> por ítem
+// del rail, sin depender de una librería de íconos aparte.
+const NAV_ICONS = {
+  agenda: `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`,
+  clientes: `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`,
+  metricas: `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`,
+  horarios: `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 16 14"></polyline></svg>`,
+};
+const NAV_LABELS = { agenda: "Agenda", clientes: "Clientes", metricas: "Métricas", horarios: "Horarios" };
+
 function renderApp() {
+  const iniciales = state.peluquero.nombre
+    .split(/\s+/)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
   app.innerHTML = `
     <div class="shell">
       <aside class="sidebar">
-        <div class="sidebar-brand"><img src="assets/logo-clavis.svg" alt="Clavis" /></div>
-        <div class="sidebar-comercio">${escapeHtml(state.peluquero.nombre)}</div>
+        <div class="sidebar-brand"><div class="sidebar-mark">C</div></div>
         <nav class="sidebar-nav">
-          <button class="nav-item ${state.view === "agenda" ? "active" : ""}" data-view="agenda"><span class="navdot"></span>Agenda</button>
-          <button class="nav-item ${state.view === "clientes" ? "active" : ""}" data-view="clientes"><span class="navdot"></span>Clientes</button>
-          <button class="nav-item ${state.view === "metricas" ? "active" : ""}" data-view="metricas"><span class="navdot"></span>Métricas</button>
-          <button class="nav-item ${state.view === "horarios" ? "active" : ""}" data-view="horarios"><span class="navdot"></span>Horarios</button>
+          ${Object.keys(NAV_ICONS)
+            .map(
+              (v) => `
+            <button class="nav-item ${state.view === v ? "active" : ""}" data-view="${v}">
+              <span class="nav-icon">${NAV_ICONS[v]}</span>
+              <span class="nav-label">${NAV_LABELS[v]}</span>
+            </button>`
+            )
+            .join("")}
         </nav>
         <div class="sidebar-footer">
-          <div class="sidebar-plan">
-            <div class="sidebar-plan-label">Plan</div>
-            <div class="sidebar-plan-dias">${trialLabel()}</div>
-            ${
-              state.peluquero.plan && state.peluquero.plan !== "trial"
-                ? ""
-                : `<button type="button" class="secondary" id="btn-activar-plan">Activar plan</button>`
-            }
-          </div>
-          <button class="secondary" id="btn-logout">Cerrar sesión</button>
+          <button type="button" class="sidebar-avatar" id="btn-logout" title="Cerrar sesión">${escapeHtml(iniciales)}</button>
         </div>
       </aside>
-      <main class="content">
-        ${state.error ? `<div class="error-msg">${escapeHtml(state.error)}</div>` : ""}
-        ${state.view === "agenda" ? renderAgendaView() : ""}
-        ${state.view === "clientes" ? renderClientesView() : ""}
-        ${state.view === "metricas" ? renderMetricasView() : ""}
-        ${state.view === "horarios" ? renderHorariosView() : ""}
-      </main>
+      <div class="app-main">
+        <div class="topbar-wrap">
+          <header class="topbar">
+            <div class="topbar-comercio">${escapeHtml(state.peluquero.nombre)}</div>
+            <div class="topbar-plan">
+              <span class="topbar-plan-dias">${trialLabel()}</span>
+              ${
+                state.peluquero.plan && state.peluquero.plan !== "trial"
+                  ? ""
+                  : `<button type="button" class="secondary" id="btn-activar-plan">Activar plan</button>`
+              }
+            </div>
+            ${state.loading ? `<div class="topbar-progress m3-progress-linear"></div>` : ""}
+          </header>
+        </div>
+        <main class="content">
+          ${state.error ? `<div class="error-msg">${escapeHtml(state.error)}</div>` : ""}
+          ${state.view === "agenda" ? renderAgendaView() : ""}
+          ${state.view === "clientes" ? renderClientesView() : ""}
+          ${state.view === "metricas" ? renderMetricasView() : ""}
+          ${state.view === "horarios" ? renderHorariosView() : ""}
+        </main>
+      </div>
     </div>
     <div class="modal-backdrop" id="modal-backdrop"></div>
   `;
@@ -552,8 +595,20 @@ function renderApp() {
   document.querySelectorAll(".nav-item").forEach((btn) => {
     btn.addEventListener("click", () => goToView(btn.dataset.view));
   });
-  document.getElementById("btn-logout").addEventListener("click", async () => {
-    await db.auth.signOut();
+  document.getElementById("btn-logout").addEventListener("click", () => {
+    openModal(`
+      <h3>¿Cerrar sesión?</h3>
+      <p class="hint">Vas a tener que volver a entrar con tu email o Google.</p>
+      <div class="actions">
+        <button type="button" class="secondary" id="logout-cancel">Cancelar</button>
+        <button type="button" class="danger" id="logout-confirm">Cerrar sesión</button>
+      </div>
+    `);
+    document.getElementById("logout-cancel").addEventListener("click", closeModal);
+    document.getElementById("logout-confirm").addEventListener("click", async () => {
+      closeModal();
+      await db.auth.signOut();
+    });
   });
   const btnActivarPlan = document.getElementById("btn-activar-plan");
   if (btnActivarPlan) {
@@ -1452,7 +1507,7 @@ async function openClienteDetailModal(clienteId) {
         <div class="turno-detail-contact">${cliente.telefono ? escapeHtml(cliente.telefono) + " · " : ""}cliente desde ${escapeHtml(new Date(cliente.creado_en).toLocaleDateString("es-AR", { year: "numeric", month: "long" }))}</div>
       </div>
     </div>
-    <div id="cliente-historial"><p class="hint">Cargando historial...</p></div>
+    <div id="cliente-historial"><div class="m3-loading-row"><div class="m3-spinner"></div>Cargando historial...</div></div>
   `);
 
   const { data: turnos, error } = await db
@@ -1624,7 +1679,7 @@ async function loadMetricas() {
 
 function renderMetricasView() {
   if (!state.metricas) {
-    return `<div class="content-header"><h2>Métricas</h2></div><p class="hint">Cargando...</p>`;
+    return `<div class="content-header"><h2>Métricas</h2></div><div class="m3-loading-row centered"><div class="m3-spinner"></div>Cargando...</div>`;
   }
   const m = state.metricas;
 

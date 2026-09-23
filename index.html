@@ -6,26 +6,30 @@
 <title>Clavis — Tu agenda se llena sola</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,600;8..144,700;8..144,800&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   /* overflow-x:hidden solo en body no alcanza en Safari de iOS — hay
      que ponerlo también en html, si no el scroll horizontal (por los
      círculos decorativos que sobresalen del viewport en el hero y el
      CTA final) se sigue colando en el celular. */
   html { scroll-behavior: smooth; overflow-x: hidden; }
-  body { margin: 0; background: #ffffff; color: #243E4B; font-family: "Poppins", system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; max-width: 100%; }
+  body { margin: 0; background: #ffffff; color: #063C44; font-family: "Roboto", system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; max-width: 100%; }
   * { box-sizing: border-box; }
-  a { color: #243E4B; text-decoration: none; }
-  a:hover { color: #6EABC7; }
+  a { color: #063C44; text-decoration: none; }
+  a:hover { color: #0E6B78; }
   @keyframes clavis-float { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-14px) rotate(3deg); } }
   @keyframes clavis-pulse { 0%,100% { opacity: .35; transform: scale(1); } 50% { opacity: .9; transform: scale(1.35); } }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  /* CTA plano M3: levanta un poco y se aclara al hover, sin escalón. */
+  .cta { transition: transform .15s ease, filter .15s ease, box-shadow .15s ease; }
+  .cta:hover { transform: translateY(-2px); filter: brightness(1.05); }
+  .cta:active { transform: translateY(0); filter: brightness(0.98); }
 </style>
 </head>
 <body>
-<div id="cv-progress" style="position:fixed;top:0;left:0;height:3px;width:0%;background:#FFE26D;z-index:60;transition:width .12s linear"></div>
+<div id="cv-progress" style="position:fixed;top:0;left:0;height:3px;width:0%;background:#E1EE7E;z-index:60;transition:width .12s linear"></div>
 
-<nav id="cv-nav" style="position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-bottom:1px solid #EAF0F2;transition:box-shadow .25s ease,border-color .25s ease">
+<nav id="cv-nav" style="position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-bottom:1px solid #E1EAEA;transition:box-shadow .25s ease,border-color .25s ease">
   <div style="max-width:1140px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:20px">
     <a href="#top" style="display:flex;align-items:center"><img src="assets/logo-clavis.svg" alt="Clavis" style="height:34px;width:auto;display:block" /></a>
     <div style="flex:1"></div>
@@ -35,103 +39,116 @@
       <a href="#precios" id="cv-nav-2">Precios</a>
       <a href="#" id="cv-nav-3">Ayuda</a>
     </div>
-    <a href="app.html" style="background:#243E4B;color:#fff;font-weight:600;font-size:14.5px;padding:11px 20px;border-radius:14px;box-shadow:0 4px 0 #16262E;transition:transform .12s ease,box-shadow .12s ease">Entrar</a>
+    <a href="app.html" class="cta" style="background:#063C44;color:#fff;font-weight:600;font-size:14.5px;padding:11px 20px;border-radius:9999px;box-shadow:0 3px 10px rgba(6,60,68,.3);transition:transform .12s ease,box-shadow .12s ease">Entrar</a>
   </div>
 </nav>
 
 <header id="top" style="position:relative;overflow:hidden">
-  <div id="cv-blob-1" style="position:absolute;top:-90px;right:-60px;width:380px;height:380px;border-radius:50%;background:#EAF4F8;z-index:0"></div>
-  <div id="cv-blob-2" style="position:absolute;top:320px;left:-120px;width:240px;height:240px;border-radius:50%;background:#FFF7D4;z-index:0"></div>
+  <!-- shape grande festoneado, mismo lenguaje que el mockup de Material 3 Expressive (no un blob chico en una esquina) -->
+  <svg width="100%" height="620" viewBox="0 0 1440 620" preserveAspectRatio="none" style="position:absolute;top:0;left:0;z-index:0" id="cv-blob-1">
+    <path fill="#B4EEF5" d="
+      M0,0 L1440,0 L1440,280
+      C1350,280 1350,540 1260,540
+      C1170,540 1170,280 1080,280
+      C990,280 990,540 900,540
+      C810,540 810,280 720,280
+      C630,280 630,540 540,540
+      C450,540 450,280 360,280
+      C270,280 270,540 180,540
+      C90,540 90,280 0,280
+      Z"></path>
+  </svg>
+  <div id="cv-blob-2" style="position:absolute;top:440px;left:-120px;width:240px;height:240px;border-radius:50%;background:#F3F8D6;z-index:0"></div>
   <div style="position:relative;z-index:1;max-width:1140px;margin:0 auto;padding:64px 24px 72px;display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:56px;align-items:center">
     <div>
-      <div data-reveal="1" style="display:inline-flex;align-items:center;gap:9px;border:1px solid #DCE7EB;border-radius:999px;padding:7px 15px 7px 11px;font-size:12.5px;font-weight:600;letter-spacing:.02em;margin-bottom:26px">
-        <span style="width:7px;height:7px;border-radius:50%;background:#6EABC7;display:block;animation:clavis-pulse 2.2s ease-in-out infinite"></span>
+      <div data-reveal="1" style="display:inline-flex;align-items:center;gap:9px;border:1px solid #D2DEDE;border-radius:999px;padding:7px 15px 7px 11px;font-size:12.5px;font-weight:600;letter-spacing:.02em;margin-bottom:26px">
+        <span style="width:7px;height:7px;border-radius:50%;background:#0E6B78;display:block;animation:clavis-pulse 2.2s ease-in-out infinite"></span>
         Sin apps que nadie descarga
       </div>
-      <h1 data-reveal="2" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(40px,5.2vw,64px);line-height:1.02;letter-spacing:-.035em;margin:0 0 22px;text-wrap:balance">
+      <h1 data-reveal="2" style="font-family:'Roboto Flex',sans-serif;font-weight:800;font-size:clamp(40px,5.2vw,64px);line-height:1.02;letter-spacing:-.035em;margin:0 0 22px;text-wrap:balance">
         Tu agenda se
         <span style="position:relative;display:inline-block;white-space:nowrap">
-          <span id="cv-swash" style="position:absolute;left:-6px;right:-6px;bottom:6px;height:.42em;background:#FFE26D;border-radius:4px;transform:scaleX(0);transform-origin:left;transition:transform .7s cubic-bezier(.22,1,.36,1) .35s;z-index:-1"></span>
+          <span id="cv-swash" style="position:absolute;left:-6px;right:-6px;bottom:6px;height:.42em;background:#E1EE7E;border-radius:4px;transform:scaleX(0);transform-origin:left;transition:transform .7s cubic-bezier(.22,1,.36,1) .35s;z-index:-1"></span>
           llena sola.
         </span>
         <br />Vos atendés.
       </h1>
-      <p data-reveal="3" style="font-size:18px;line-height:1.55;color:#5B7482;max-width:440px;margin:0 0 30px">Clavis toma los turnos, avisa por WhatsApp y frena los ausentes. Vos compartís un link; tu cliente elige el horario.</p>
+      <p data-reveal="3" style="font-size:18px;line-height:1.55;color:#46615D;max-width:440px;margin:0 0 30px">Clavis toma los turnos, avisa por WhatsApp y frena los ausentes. Vos compartís un link; tu cliente elige el horario.</p>
       <div data-reveal="4" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px">
-        <a href="app.html" style="background:#6EABC7;color:#243E4B;font-weight:700;font-size:15.5px;padding:15px 26px;border-radius:16px;box-shadow:0 5px 0 #4A8AA8;transition:transform .12s ease,box-shadow .12s ease">Empezar gratis</a>
-        <a href="app.html" style="background:#fff;color:#243E4B;font-weight:600;font-size:15.5px;padding:15px 26px;border-radius:16px;border:1px solid #DCE7EB;box-shadow:0 5px 0 #EAF0F2;transition:transform .12s ease,box-shadow .12s ease">Ver la agenda en vivo</a>
+        <a href="app.html" class="cta" style="background:#0E6B78;color:#fff;font-weight:700;font-size:15.5px;padding:15px 26px;border-radius:9999px;box-shadow:0 8px 20px -6px rgba(6,60,68,.4);transition:transform .12s ease,box-shadow .12s ease">Empezar gratis</a>
+        <a href="app.html" class="cta" style="background:#fff;color:#063C44;font-weight:600;font-size:15.5px;padding:15px 26px;border-radius:9999px;border:1.5px solid #D2DEDE;box-shadow:none;transition:transform .12s ease,box-shadow .12s ease">Ver la agenda en vivo</a>
       </div>
-      <p data-reveal="5" style="font-size:13.5px;color:#5B7482;margin:0">14 días gratis · sin tarjeta · cancelás cuando quieras</p>
+      <p data-reveal="5" style="font-size:13.5px;color:#46615D;margin:0">14 días gratis · sin tarjeta · cancelás cuando quieras</p>
     </div>
 
     <div data-reveal="3" style="position:relative">
-      <div id="cv-tilt" style="background:#fff;border:1px solid #DCE7EB;border-radius:24px;box-shadow:14px 14px 0 #243E4B;padding:20px;transition:transform .35s cubic-bezier(.22,1,.36,1)">
+      <div id="cv-tilt" style="background:#fff;border:1px solid #D2DEDE;border-radius:32px 32px 32px 12px;box-shadow:0 40px 80px -30px rgba(6,60,68,.35);padding:20px;transition:transform .35s cubic-bezier(.22,1,.36,1)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div>
-            <div style="font-size:11.5px;font-weight:600;letter-spacing:.09em;color:#5B7482">HOY · MARTES 14</div>
-            <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em">Agenda del día</div>
+            <div style="font-size:11.5px;font-weight:600;letter-spacing:.09em;color:#46615D">HOY · MARTES 14</div>
+            <div style="font-family:'Roboto Flex',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em">Agenda del día</div>
           </div>
           <div style="display:flex;gap:5px">
-            <span style="width:9px;height:9px;border-radius:50%;background:#FFE26D;display:block"></span>
-            <span style="width:9px;height:9px;border-radius:50%;background:#6EABC7;display:block"></span>
-            <span style="width:9px;height:9px;border-radius:50%;background:#243E4B;display:block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#E1EE7E;display:block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#0E6B78;display:block"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:#063C44;display:block"></span>
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:9px">
-          <div data-slot="0" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:#F7FAFB;border:1px solid transparent;transition:all .35s ease">
-            <span style="font-size:13px;font-weight:600;color:#5B7482;width:44px">09:00</span>
+          <div data-slot="0" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:#EFF6F6;border:1px solid transparent;transition:all .35s ease">
+            <span style="font-size:13px;font-weight:600;color:#46615D;width:44px">09:00</span>
             <span style="flex:1;font-size:14.5px;font-weight:600">Corte + barba · Nahuel</span>
             <span data-tick="0" style="font-size:11px;font-weight:700;color:#3F8F6B;opacity:0;transition:opacity .3s ease">✓</span>
           </div>
-          <div data-slot="1" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:#F7FAFB;border:1px solid transparent;transition:all .35s ease">
-            <span style="font-size:13px;font-weight:600;color:#5B7482;width:44px">10:30</span>
+          <div data-slot="1" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:#EFF6F6;border:1px solid transparent;transition:all .35s ease">
+            <span style="font-size:13px;font-weight:600;color:#46615D;width:44px">10:30</span>
             <span style="flex:1;font-size:14.5px;font-weight:600">Color · Malena R.</span>
             <span data-tick="1" style="font-size:11px;font-weight:700;color:#3F8F6B;opacity:0;transition:opacity .3s ease">✓</span>
           </div>
-          <div data-slot="2" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:#F7FAFB;border:1px solid transparent;transition:all .35s ease">
-            <span style="font-size:13px;font-weight:600;color:#5B7482;width:44px">12:00</span>
+          <div data-slot="2" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:#EFF6F6;border:1px solid transparent;transition:all .35s ease">
+            <span style="font-size:13px;font-weight:600;color:#46615D;width:44px">12:00</span>
             <span style="flex:1;font-size:14.5px;font-weight:600">Manicura · Sofi D.</span>
             <span data-tick="2" style="font-size:11px;font-weight:700;color:#3F8F6B;opacity:0;transition:opacity .3s ease">✓</span>
           </div>
-          <div data-slot="3" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:#F7FAFB;border:1px solid transparent;transition:all .35s ease">
-            <span style="font-size:13px;font-weight:600;color:#5B7482;width:44px">15:30</span>
+          <div data-slot="3" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;background:#EFF6F6;border:1px solid transparent;transition:all .35s ease">
+            <span style="font-size:13px;font-weight:600;color:#46615D;width:44px">15:30</span>
             <span style="flex:1;font-size:14.5px;font-weight:600">Limpieza facial · Tomás</span>
             <span data-tick="3" style="font-size:11px;font-weight:700;color:#3F8F6B;opacity:0;transition:opacity .3s ease">✓</span>
           </div>
         </div>
-        <div style="margin-top:16px;padding-top:14px;border-top:1px dashed #E1E8EA;display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:13px;color:#5B7482;font-weight:500">Ocupación de hoy</span>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px dashed #E1EAEA;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;color:#46615D;font-weight:500">Ocupación de hoy</span>
           <span style="font-size:13px;font-weight:700"><span id="cv-occ">0</span>%</span>
         </div>
       </div>
-      <div id="cv-wa" style="position:absolute;right:-14px;bottom:-26px;background:#243E4B;color:#fff;border-radius:16px;padding:13px 17px;font-size:13px;font-weight:600;box-shadow:0 12px 26px -10px rgba(36,62,75,.5);opacity:0;transform:translateY(12px);transition:all .45s cubic-bezier(.22,1,.36,1)">
-        <span style="color:#FFE26D">●</span> Malena confirmó por WhatsApp
+      <div id="cv-wa" style="position:absolute;right:-14px;bottom:-26px;background:#063C44;color:#fff;border-radius:16px;padding:13px 17px;font-size:13px;font-weight:600;box-shadow:0 12px 26px -10px rgba(6,60,68,.5);opacity:0;transform:translateY(12px);transition:all .45s cubic-bezier(.22,1,.36,1)">
+        <span style="color:#E1EE7E">●</span> Malena confirmó por WhatsApp
       </div>
-      <div style="position:absolute;left:-26px;top:-22px;width:54px;height:54px;border-radius:16px;background:#FFE26D;animation:clavis-float 6s ease-in-out infinite;z-index:-1"></div>
+      <div style="position:absolute;left:-26px;top:-22px;width:54px;height:54px;border-radius:16px;background:#E1EE7E;animation:clavis-float 6s ease-in-out infinite;z-index:-1"></div>
     </div>
   </div>
 </header>
 
 <section id="producto" style="max-width:1140px;margin:0 auto;padding:96px 24px 40px">
   <div data-reveal="1" style="display:flex;align-items:flex-end;justify-content:space-between;gap:32px;flex-wrap:wrap;margin-bottom:38px">
-    <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.03em;line-height:1.06;margin:0;max-width:520px">Tres cosas que te devuelven la semana</h2>
-    <p style="font-size:16px;color:#5B7482;max-width:340px;margin:0">Nada de configurar durante horas. Clavis viene resuelto y lo ajustás en cinco minutos.</p>
+    <h2 style="font-family:'Roboto Flex',sans-serif;font-weight:800;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.03em;line-height:1.06;margin:0;max-width:520px">Tres cosas que te devuelven la semana</h2>
+    <p style="font-size:16px;color:#46615D;max-width:340px;margin:0">Nada de configurar durante horas. Clavis viene resuelto y lo ajustás en cinco minutos.</p>
   </div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
-    <div data-reveal="1" data-card="1" style="background:#fff;border:1px solid #DCE7EB;border-radius:22px;padding:28px;box-shadow:8px 8px 0 #EAF4F8;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
-      <div style="width:46px;height:46px;border-radius:14px;background:#6EABC7;color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;margin-bottom:20px">⏱</div>
-      <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em;margin:0 0 9px">Reservas sin llamados</h3>
-      <p style="font-size:15px;line-height:1.55;color:#5B7482;margin:0">Compartís tu link y tus clientes eligen entre tus horarios reales. Cero superposiciones, cero mensajes a las once de la noche.</p>
+    <div data-reveal="1" data-card="1" style="background:#fff;border:1px solid #D2DEDE;border-radius:28px;padding:28px;box-shadow:0 10px 24px -14px rgba(6,60,68,.35);transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
+      <div style="width:46px;height:46px;border-radius:14px;background:#0E6B78;color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;margin-bottom:20px">⏱</div>
+      <h3 style="font-family:'Roboto Flex',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em;margin:0 0 9px">Reservas sin llamados</h3>
+      <p style="font-size:15px;line-height:1.55;color:#46615D;margin:0">Compartís tu link y tus clientes eligen entre tus horarios reales. Cero superposiciones, cero mensajes a las once de la noche.</p>
     </div>
-    <div data-reveal="2" data-card="1" style="background:#fff;border:1px solid #DCE7EB;border-radius:22px;padding:28px;box-shadow:8px 8px 0 #FFF3C2;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
-      <div style="width:46px;height:46px;border-radius:14px;background:#FFE26D;color:#243E4B;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;margin-bottom:20px">✳</div>
-      <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em;margin:0 0 9px">Recordatorios que funcionan</h3>
-      <p style="font-size:15px;line-height:1.55;color:#5B7482;margin:0">Aviso automático por WhatsApp y mail. Confirman con un toque y el que no viene libera el horario solo.</p>
+    <div data-reveal="2" data-card="1" style="background:#fff;border:1px solid #D2DEDE;border-radius:28px;padding:28px;box-shadow:0 10px 24px -14px rgba(6,60,68,.35);transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
+      <div style="width:46px;height:46px;border-radius:14px;background:#E1EE7E;color:#063C44;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;margin-bottom:20px">✳</div>
+      <h3 style="font-family:'Roboto Flex',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em;margin:0 0 9px">Recordatorios que funcionan</h3>
+      <p style="font-size:15px;line-height:1.55;color:#46615D;margin:0">Aviso automático por WhatsApp y mail. Confirman con un toque y el que no viene libera el horario solo.</p>
     </div>
-    <div data-reveal="3" data-card="1" style="background:#fff;border:1px solid #DCE7EB;border-radius:22px;padding:28px;box-shadow:8px 8px 0 #E4EAED;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
-      <div style="width:46px;height:46px;border-radius:14px;background:#243E4B;color:#FFE26D;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;margin-bottom:20px">◆</div>
-      <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em;margin:0 0 9px">Números para decidir</h3>
-      <p style="font-size:15px;line-height:1.55;color:#5B7482;margin:0">Qué servicio rinde, qué horario se vacía y quién no vuelve. Sin planillas ni cuentas a mano.</p>
+    <div data-reveal="3" data-card="1" style="background:#fff;border:1px solid #D2DEDE;border-radius:28px;padding:28px;box-shadow:0 10px 24px -14px rgba(6,60,68,.35);transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
+      <div style="width:46px;height:46px;border-radius:14px;background:#063C44;color:#E1EE7E;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;margin-bottom:20px">◆</div>
+      <h3 style="font-family:'Roboto Flex',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em;margin:0 0 9px">Números para decidir</h3>
+      <p style="font-size:15px;line-height:1.55;color:#46615D;margin:0">Qué servicio rinde, qué horario se vacía y quién no vuelve. Sin planillas ni cuentas a mano.</p>
     </div>
   </div>
 </section>
@@ -139,45 +156,45 @@
 <section id="como" style="max-width:1140px;margin:0 auto;padding:72px 24px 40px">
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:48px;align-items:start">
     <div style="position:sticky;top:110px">
-      <div style="font-size:12.5px;font-weight:700;letter-spacing:.09em;color:#6EABC7;margin-bottom:14px">CÓMO FUNCIONA</div>
-      <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.03em;line-height:1.06;margin:0 0 18px">De cero a turnos en una tarde</h2>
-      <p style="font-size:16px;color:#5B7482;margin:0 0 26px;max-width:340px">Tres pasos. Sin instalar nada, sin capacitación, sin planilla de respaldo.</p>
-      <div style="height:5px;background:#EAF0F2;border-radius:99px;overflow:hidden;max-width:300px">
-        <div id="cv-track" style="height:100%;width:0%;background:#6EABC7;border-radius:99px;transition:width .3s ease"></div>
+      <div style="font-size:12.5px;font-weight:700;letter-spacing:.09em;color:#0E6B78;margin-bottom:14px">CÓMO FUNCIONA</div>
+      <h2 style="font-family:'Roboto Flex',sans-serif;font-weight:800;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.03em;line-height:1.06;margin:0 0 18px">De cero a turnos en una tarde</h2>
+      <p style="font-size:16px;color:#46615D;margin:0 0 26px;max-width:340px">Tres pasos. Sin instalar nada, sin capacitación, sin planilla de respaldo.</p>
+      <div style="height:5px;background:#E1EAEA;border-radius:99px;overflow:hidden;max-width:300px">
+        <div id="cv-track" style="height:100%;width:0%;background:#0E6B78;border-radius:99px;transition:width .3s ease"></div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:18px">
-      <div data-step="0" data-reveal="1" style="background:#F7FAFB;border:1px solid #E6EEF1;border-radius:22px;padding:30px;display:flex;gap:22px;align-items:flex-start;transition:background .3s ease,border-color .3s ease">
-        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;line-height:1;color:#C9DBE3;letter-spacing:-.04em">01</div>
+      <div data-step="0" data-reveal="1" style="background:#EFF6F6;border:1px solid #E1EAEA;border-radius:28px;padding:30px;display:flex;gap:22px;align-items:flex-start;transition:background .3s ease,border-color .3s ease">
+        <div style="font-family:'Roboto Flex',sans-serif;font-weight:800;font-size:40px;line-height:1;color:#C7D6D3;letter-spacing:-.04em">01</div>
         <div>
-          <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;margin:0 0 8px">Cargá tus horarios</h3>
-          <p style="font-size:15px;line-height:1.55;color:#5B7482;margin:0 0 16px">Días, duración y servicios. Cinco minutos y queda para siempre.</p>
+          <h3 style="font-family:'Roboto Flex',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;margin:0 0 8px">Cargá tus horarios</h3>
+          <p style="font-size:15px;line-height:1.55;color:#46615D;margin:0 0 16px">Días, duración y servicios. Cinco minutos y queda para siempre.</p>
           <div style="display:flex;gap:7px;flex-wrap:wrap">
-            <span style="background:#fff;border:1px solid #DCE7EB;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">Lun a Sáb</span>
-            <span style="background:#fff;border:1px solid #DCE7EB;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">30 min</span>
-            <span style="background:#FFE26D;border:1px solid #FFE26D;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">+ Feriados cerrado</span>
+            <span style="background:#fff;border:1px solid #D2DEDE;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">Lun a Sáb</span>
+            <span style="background:#fff;border:1px solid #D2DEDE;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">30 min</span>
+            <span style="background:#E1EE7E;border:1px solid #E1EE7E;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">+ Feriados cerrado</span>
           </div>
         </div>
       </div>
-      <div data-step="1" data-reveal="1" style="background:#F7FAFB;border:1px solid #E6EEF1;border-radius:22px;padding:30px;display:flex;gap:22px;align-items:flex-start;transition:background .3s ease,border-color .3s ease">
-        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;line-height:1;color:#C9DBE3;letter-spacing:-.04em">02</div>
+      <div data-step="1" data-reveal="1" style="background:#EFF6F6;border:1px solid #E1EAEA;border-radius:28px;padding:30px;display:flex;gap:22px;align-items:flex-start;transition:background .3s ease,border-color .3s ease">
+        <div style="font-family:'Roboto Flex',sans-serif;font-weight:800;font-size:40px;line-height:1;color:#C7D6D3;letter-spacing:-.04em">02</div>
         <div>
-          <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;margin:0 0 8px">Compartí tu link</h3>
-          <p style="font-size:15px;line-height:1.55;color:#5B7482;margin:0 0 16px">En Instagram, en WhatsApp o con un QR pegado en la puerta del local.</p>
-          <div style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid #DCE7EB;border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:600">
-            <span style="color:#5B7482">clavis.app/</span>tu-local
-            <span style="background:#243E4B;color:#fff;border-radius:8px;padding:4px 10px;font-size:11.5px">Copiar</span>
+          <h3 style="font-family:'Roboto Flex',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;margin:0 0 8px">Compartí tu link</h3>
+          <p style="font-size:15px;line-height:1.55;color:#46615D;margin:0 0 16px">En Instagram, en WhatsApp o con un QR pegado en la puerta del local.</p>
+          <div style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid #D2DEDE;border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:600">
+            <span style="color:#46615D">clavis.app/</span>tu-local
+            <span style="background:#063C44;color:#fff;border-radius:8px;padding:4px 10px;font-size:11.5px">Copiar</span>
           </div>
         </div>
       </div>
-      <div data-step="2" data-reveal="1" style="background:#F7FAFB;border:1px solid #E6EEF1;border-radius:22px;padding:30px;display:flex;gap:22px;align-items:flex-start;transition:background .3s ease,border-color .3s ease">
-        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;line-height:1;color:#C9DBE3;letter-spacing:-.04em">03</div>
+      <div data-step="2" data-reveal="1" style="background:#EFF6F6;border:1px solid #E1EAEA;border-radius:28px;padding:30px;display:flex;gap:22px;align-items:flex-start;transition:background .3s ease,border-color .3s ease">
+        <div style="font-family:'Roboto Flex',sans-serif;font-weight:800;font-size:40px;line-height:1;color:#C7D6D3;letter-spacing:-.04em">03</div>
         <div>
-          <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;margin:0 0 8px">Atendé tranquilo</h3>
-          <p style="font-size:15px;line-height:1.55;color:#5B7482;margin:0 0 16px">Clavis confirma, recuerda y reacomoda la agenda cuando alguien se cae.</p>
+          <h3 style="font-family:'Roboto Flex',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;margin:0 0 8px">Atendé tranquilo</h3>
+          <p style="font-size:15px;line-height:1.55;color:#46615D;margin:0 0 16px">Clavis confirma, recuerda y reacomoda la agenda cuando alguien se cae.</p>
           <div style="display:flex;gap:7px;flex-wrap:wrap">
-            <span style="background:#fff;border:1px solid #DCE7EB;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">Recordatorio -24 h</span>
-            <span style="background:#fff;border:1px solid #DCE7EB;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">Lista de espera</span>
+            <span style="background:#fff;border:1px solid #D2DEDE;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">Recordatorio -24 h</span>
+            <span style="background:#fff;border:1px solid #D2DEDE;border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600">Lista de espera</span>
           </div>
         </div>
       </div>
@@ -188,71 +205,75 @@
 
 <section id="precios" style="max-width:1140px;margin:0 auto;padding:60px 24px 40px">
   <div data-reveal="1" style="text-align:center;margin-bottom:38px">
-    <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.03em;margin:0 0 12px">Precios simples, sin sorpresas</h2>
-    <p style="font-size:16px;color:#5B7482;margin:0">Empezá gratis. Pasás de plan sólo cuando tu agenda lo pide.</p>
+    <h2 style="font-family:'Roboto Flex',sans-serif;font-weight:800;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.03em;margin:0 0 12px">Precios simples, sin sorpresas</h2>
+    <p style="font-size:16px;color:#46615D;margin:0">Empezá gratis. Pasás de plan sólo cuando tu agenda lo pide.</p>
   </div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;align-items:stretch">
-    <div data-reveal="1" data-card="1" style="background:#fff;border:1px solid #DCE7EB;border-radius:24px;padding:30px;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
-      <div style="font-size:12px;font-weight:700;letter-spacing:.09em;color:#5B7482;text-transform:uppercase">Arranque</div>
-      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.035em;margin:10px 0 4px">$0<span style="font-family:'Poppins',sans-serif;font-size:14px;font-weight:500;color:#5B7482">/mes</span></div>
-      <p style="font-size:14px;color:#5B7482;margin:0 0 20px">Hasta 40 turnos por mes.</p>
+    <div data-reveal="1" data-card="1" style="background:#fff;border:1px solid #D2DEDE;border-radius:28px;padding:30px;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.09em;color:#46615D;text-transform:uppercase">Arranque</div>
+      <div style="font-family:'Roboto Flex',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.035em;margin:10px 0 4px">$0<span style="font-family:'Roboto',sans-serif;font-size:14px;font-weight:500;color:#46615D">/mes</span></div>
+      <p style="font-size:14px;color:#46615D;margin:0 0 20px">Hasta 40 turnos por mes.</p>
       <ul style="list-style:none;padding:0;margin:0 0 24px;display:flex;flex-direction:column;gap:11px;font-size:14.5px">
-        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>Link de reservas</li>
-        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>Agenda del día</li>
-        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>1 profesional</li>
+        <li style="display:flex;gap:10px"><span style="color:#0E6B78;font-weight:700">✓</span>Link de reservas</li>
+        <li style="display:flex;gap:10px"><span style="color:#0E6B78;font-weight:700">✓</span>Agenda del día</li>
+        <li style="display:flex;gap:10px"><span style="color:#0E6B78;font-weight:700">✓</span>1 profesional</li>
       </ul>
-      <a href="app.html" style="margin-top:auto;text-align:center;background:#fff;border:1px solid #DCE7EB;color:#243E4B;font-weight:600;font-size:15px;padding:13px;border-radius:14px;box-shadow:0 4px 0 #EAF0F2">Empezar gratis</a>
+      <a href="app.html" class="cta" style="margin-top:auto;text-align:center;background:#fff;border:1.5px solid #D2DEDE;color:#063C44;font-weight:600;font-size:15px;padding:13px;border-radius:9999px;box-shadow:none">Empezar gratis</a>
     </div>
-    <div data-reveal="2" data-card="1" style="background:#243E4B;color:#fff;border:1px solid #243E4B;border-radius:24px;padding:30px;display:flex;flex-direction:column;position:relative;box-shadow:0 22px 40px -22px rgba(36,62,75,.6);transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
-      <span style="position:absolute;top:-13px;left:30px;background:#FFE26D;color:#243E4B;font-size:11.5px;font-weight:700;letter-spacing:.06em;padding:6px 13px;border-radius:99px">EL ELEGIDO</span>
-      <div style="font-size:12px;font-weight:700;letter-spacing:.09em;color:#9FBAC7;text-transform:uppercase">Comercio</div>
-      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.035em;margin:10px 0 4px">$14.900<span style="font-family:'Poppins',sans-serif;font-size:14px;font-weight:500;color:#9FBAC7">/mes</span></div>
-      <p style="font-size:14px;color:#B9CCD5;margin:0 0 20px">Turnos ilimitados y equipo completo.</p>
+    <div data-reveal="2" data-card="1" style="background:#063C44;color:#fff;border:1px solid #063C44;border-radius:28px;padding:30px;display:flex;flex-direction:column;position:relative;box-shadow:0 22px 40px -22px rgba(6,60,68,.5);transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
+      <span style="position:absolute;top:-13px;left:30px;background:#E1EE7E;color:#063C44;font-size:11.5px;font-weight:700;letter-spacing:.06em;padding:6px 13px;border-radius:99px">EL ELEGIDO</span>
+      <div style="font-size:12px;font-weight:700;letter-spacing:.09em;color:#A9D6D6;text-transform:uppercase">Comercio</div>
+      <div style="font-family:'Roboto Flex',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.035em;margin:10px 0 4px">$19.000<span style="font-family:'Roboto',sans-serif;font-size:14px;font-weight:500;color:#A9D6D6">/mes</span></div>
+      <p style="font-size:14px;color:#A9D6D6;margin:0 0 20px">Turnos ilimitados y equipo completo.</p>
       <ul style="list-style:none;padding:0;margin:0 0 24px;display:flex;flex-direction:column;gap:11px;font-size:14.5px">
-        <li style="display:flex;gap:10px"><span style="color:#FFE26D;font-weight:700">✓</span>Todo lo de Arranque</li>
-        <li style="display:flex;gap:10px"><span style="color:#FFE26D;font-weight:700">✓</span>Recordatorios por WhatsApp</li>
-        <li style="display:flex;gap:10px"><span style="color:#FFE26D;font-weight:700">✓</span>Hasta 8 profesionales</li>
-        <li style="display:flex;gap:10px"><span style="color:#FFE26D;font-weight:700">✓</span>Métricas y reportes</li>
+        <li style="display:flex;gap:10px"><span style="color:#E1EE7E;font-weight:700">✓</span>Todo lo de Arranque</li>
+        <li style="display:flex;gap:10px"><span style="color:#E1EE7E;font-weight:700">✓</span>Recordatorios por WhatsApp</li>
+        <li style="display:flex;gap:10px"><span style="color:#E1EE7E;font-weight:700">✓</span>Hasta 8 profesionales</li>
+        <li style="display:flex;gap:10px"><span style="color:#E1EE7E;font-weight:700">✓</span>Métricas y reportes</li>
       </ul>
-      <a href="app.html" style="margin-top:auto;text-align:center;background:#FFE26D;color:#243E4B;font-weight:700;font-size:15px;padding:13px;border-radius:14px;box-shadow:0 4px 0 #D9BE4A;transition:transform .12s ease,box-shadow .12s ease">Probar 14 días</a>
+      <a href="app.html" class="cta" style="margin-top:auto;text-align:center;background:#E1EE7E;color:#063C44;font-weight:700;font-size:15px;padding:13px;border-radius:9999px;box-shadow:none;transition:transform .12s ease,box-shadow .12s ease">Probar 14 días</a>
     </div>
-    <div data-reveal="3" data-card="1" style="background:#fff;border:1px solid #DCE7EB;border-radius:24px;padding:30px;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
-      <div style="font-size:12px;font-weight:700;letter-spacing:.09em;color:#5B7482;text-transform:uppercase">Cadena</div>
-      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.035em;margin:10px 0 4px">$34.900<span style="font-family:'Poppins',sans-serif;font-size:14px;font-weight:500;color:#5B7482">/mes</span></div>
-      <p style="font-size:14px;color:#5B7482;margin:0 0 20px">Varias sucursales, una sola vista.</p>
+    <div data-reveal="3" data-card="1" style="background:#fff;border:1px solid #D2DEDE;border-radius:28px;padding:30px;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.09em;color:#46615D;text-transform:uppercase">Empresa</div>
+      <div style="font-family:'Roboto Flex',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.035em;margin:10px 0 4px">Consultar</div>
+      <p style="font-size:14px;color:#46615D;margin:0 0 20px">Más de un local o un equipo grande. Lo armamos con vos.</p>
       <ul style="list-style:none;padding:0;margin:0 0 24px;display:flex;flex-direction:column;gap:11px;font-size:14.5px">
-        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>Todo lo de Comercio</li>
-        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>Sucursales ilimitadas</li>
-        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>Señas y cobros online</li>
-        <li style="display:flex;gap:10px"><span style="color:#6EABC7;font-weight:700">✓</span>Soporte prioritario</li>
+        <li style="display:flex;gap:10px"><span style="color:#0E6B78;font-weight:700">✓</span>Todo lo de Comercio</li>
+        <li style="display:flex;gap:10px"><span style="color:#0E6B78;font-weight:700">✓</span>Equipo sin límite de profesionales</li>
+        <li style="display:flex;gap:10px"><span style="color:#0E6B78;font-weight:700">✓</span>Soporte prioritario</li>
+        <li style="display:flex;gap:10px"><span style="color:#0E6B78;font-weight:700">✓</span>Precio a medida por volumen</li>
       </ul>
-      <a href="app.html" style="margin-top:auto;text-align:center;background:#fff;border:1px solid #DCE7EB;color:#243E4B;font-weight:600;font-size:15px;padding:13px;border-radius:14px;box-shadow:0 4px 0 #EAF0F2">Hablar con ventas</a>
+      <a href="mailto:hola@clavis.ar" class="cta" style="margin-top:auto;text-align:center;background:#fff;border:1.5px solid #D2DEDE;color:#063C44;font-weight:600;font-size:15px;padding:13px;border-radius:9999px;box-shadow:none">Hablar con ventas</a>
     </div>
   </div>
 </section>
 
-<section style="max-width:1140px;margin:0 auto;padding:60px 24px 80px">
-  <div data-reveal="1" style="position:relative;overflow:hidden;background:#6EABC7;color:#243E4B;border-radius:28px;padding:56px 40px;display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap">
-    <div style="position:absolute;right:-40px;bottom:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,226,109,.28)"></div>
+<section style="max-width:1140px;margin:0 auto;padding:60px 24px 80px;position:relative">
+  <!-- segundo shape grande, festones asomando detrás de la banda — mismo lenguaje que el mockup -->
+  <svg width="100%" height="220" viewBox="0 0 1140 220" preserveAspectRatio="none" style="position:absolute;top:-40px;left:0;z-index:0">
+    <path fill="#FFD8EE" d="M0,170 C95,170 95,10 190,10 C285,10 285,170 380,170 C475,170 475,10 570,10 C665,10 665,170 760,170 C855,170 855,10 950,10 C1045,10 1045,170 1140,170 L1140,220 L0,220 Z"></path>
+  </svg>
+  <div data-reveal="1" style="position:relative;z-index:1;overflow:hidden;background:#0E6B78;color:#fff;border-radius:28px;padding:56px 40px;display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap">
+    <div style="position:absolute;right:-40px;bottom:-60px;width:220px;height:220px;border-radius:50%;background:rgba(225,238,126,.3)"></div>
     <div style="position:relative;z-index:1">
-      <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(26px,3.2vw,38px);letter-spacing:-.03em;margin:0 0 12px;max-width:460px;line-height:1.08">Probalo esta semana. Sin tarjeta.</h2>
-      <p style="font-size:16px;margin:0;max-width:420px;color:#243E4B">14 días completos con todo abierto. Si no te ordena la agenda, te vas y listo.</p>
+      <h2 style="font-family:'Roboto Flex',sans-serif;font-weight:800;font-size:clamp(26px,3.2vw,38px);letter-spacing:-.03em;margin:0 0 12px;max-width:460px;line-height:1.08">Probalo esta semana. Sin tarjeta.</h2>
+      <p style="font-size:16px;margin:0;max-width:420px;color:#fff;opacity:.9">14 días completos con todo abierto. Si no te ordena la agenda, te vas y listo.</p>
     </div>
-    <a href="app.html" style="position:relative;z-index:1;background:#243E4B;color:#fff;font-weight:600;font-size:16px;padding:16px 30px;border-radius:16px;box-shadow:0 5px 0 #16262E;transition:transform .12s ease,box-shadow .12s ease">Crear mi cuenta</a>
+    <a href="app.html" class="cta" style="position:relative;z-index:1;background:#E1EE7E;color:#234D12;font-weight:700;font-size:16px;padding:16px 30px;border-radius:9999px;box-shadow:none;transition:transform .12s ease,box-shadow .12s ease">Crear mi cuenta</a>
   </div>
 </section>
 
-<footer style="border-top:1px solid #EAF0F2">
+<footer style="border-top:1px solid #E1EAEA">
   <div style="max-width:1140px;margin:0 auto;padding:30px 24px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap">
     <a href="#top" style="display:flex;align-items:center"><img src="assets/logo-clavis.svg" alt="Clavis" style="height:26px;width:auto;display:block" /></a>
-    <div style="display:flex;gap:22px;font-size:14px;color:#5B7482;font-weight:500;flex-wrap:wrap">
+    <div style="display:flex;gap:22px;font-size:14px;color:#46615D;font-weight:500;flex-wrap:wrap">
       <a href="#producto">Producto</a>
       <a href="#precios">Precios</a>
       <a href="#">Soporte</a>
       <a href="terminos.html">Términos</a>
       <a href="privacidad.html">Privacidad</a>
     </div>
-    <div style="font-size:13px;color:#5B7482">© 2026 Clavis</div>
+    <div style="font-size:13px;color:#46615D">© 2026 Clavis</div>
   </div>
 </footer>
 <script>
@@ -303,7 +324,7 @@
         const y = window.scrollY;
         const max = Math.max(1, root.documentElement.scrollHeight - window.innerHeight);
         if (bar) bar.style.width = Math.min(100, (y / max) * 100) + '%';
-        if (nav) nav.style.boxShadow = y > 12 ? '0 10px 24px -20px rgba(36,62,75,.7)' : 'none';
+        if (nav) nav.style.boxShadow = y > 12 ? '0 10px 24px -20px rgba(6,60,68,.7)' : 'none';
         if (!reduce) {
           if (b1) b1.style.transform = 'translateY(' + (y * 0.16) + 'px)';
           if (b2) b2.style.transform = 'translateY(' + (-y * 0.09) + 'px)';
@@ -316,11 +337,11 @@
         });
         steps.forEach((s, i) => {
           const on = i === active;
-          s.style.background = on ? '#fff' : '#F7FAFB';
-          s.style.borderColor = on ? '#6EABC7' : '#E6EEF1';
-          s.style.boxShadow = on ? '10px 10px 0 #EAF4F8' : 'none';
+          s.style.background = on ? '#fff' : '#EFF6F6';
+          s.style.borderColor = on ? '#0E6B78' : '#E1EAEA';
+          s.style.boxShadow = on ? '0 16px 32px -18px rgba(6,60,68,.4)' : 'none';
           const num = s.firstElementChild;
-          if (num) num.style.color = on ? '#6EABC7' : '#C9DBE3';
+          if (num) num.style.color = on ? '#0E6B78' : '#C7D6D3';
         });
         if (track) track.style.width = (active < 0 ? 0 : ((active + 1) / steps.length) * 100) + '%';
         ticking = false;
@@ -369,8 +390,8 @@
       const cycle = () => {
         slots.forEach((s, k) => {
           const on = k === i;
-          s.style.background = on ? '#EAF4F8' : '#F7FAFB';
-          s.style.borderColor = on ? '#6EABC7' : 'transparent';
+          s.style.background = on ? '#DCF0F1' : '#EFF6F6';
+          s.style.borderColor = on ? '#0E6B78' : 'transparent';
           s.style.transform = on ? 'translateX(4px)' : 'none';
         });
         if (ticks[i]) ticks[i].style.opacity = '1';
@@ -392,7 +413,7 @@
       const base = c.style.boxShadow;
       c.addEventListener('mouseenter', () => {
         c.style.transform = 'translateY(-6px)';
-        if (base) c.style.boxShadow = base.replace(/^8px 8px/, '12px 12px');
+        c.style.boxShadow = '0 18px 36px -16px rgba(6,60,68,.4)';
       });
       c.addEventListener('mouseleave', () => {
         c.style.transform = 'none';
@@ -412,14 +433,8 @@
       });
       wrapEl.addEventListener('mouseleave', () => { tilt.style.transform = 'none'; });
     }
-    Array.from(root.querySelectorAll('a[href],button')).forEach(function (el) {
-      var bs = el.style.boxShadow || '';
-      var m = bs.match(/^0 (\d)px 0 (#[0-9A-Fa-f]{6})$/);
-      if (!m) return;
-      var up = bs, down = '0 ' + (parseInt(m[1], 10) - 2) + 'px 0 ' + m[2];
-      el.addEventListener('mouseenter', function () { el.style.transform = 'translateY(2px)'; el.style.boxShadow = down; });
-      el.addEventListener('mouseleave', function () { el.style.transform = 'none'; el.style.boxShadow = up; });
-    });
+    // M3 flat: los CTA levantan un poco y se aclaran al hover, sin el
+    // "escalón" de sombra dura que tenían antes (ver .cta en <style>).
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

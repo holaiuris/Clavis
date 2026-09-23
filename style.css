@@ -1,41 +1,58 @@
-@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Poppins:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,600;8..144,700;8..144,800&family=Roboto:wght@400;500;600;700&display=swap");
 
 /* ============================================================
    Clavis — hoja de estilos (reemplazo directo de style.css)
    Mismos selectores que la versión anterior: no hay que tocar
    app.js ni app.html. Sólo cambia el aspecto.
-   Paleta: blanco · #243E4B navy · #6EABC7 sky · #FFE26D solar
+   Paleta Material 3 Expressive: tríada real a 120° arrancando del
+   teal de marca — teal (primary) + magenta (secondary, ver
+   reservar.js/index.html) + oliva (tertiary, "--detail*") — ver
+   el mockup en /Clavis — Mockup Material 3 Expressive.
    ============================================================ */
 
 :root {
-  --bg: #f2f6f8;
+  --bg: #f5fafa;
   --panel: #ffffff;
-  --panel-2: #f7fafb;
-  --border: #dce7eb;
-  --border-2: #e6eef1;
-  --text: #243e4b;
-  --text-muted: #5b7482;
-  --text-soft: #5b7482;
+  --panel-2: #eff6f6;
+  --border: #d2dede;
+  --border-2: #e1eaea;
+  --text: #17211e;
+  --text-muted: #46615d;
+  --text-soft: #46615d;
 
   --libre: #2f7d5b;
   --libre-bg: #e7f4ed;
   --ocupado: #2e6c88;
   --ocupado-bg: #eaf4f8;
-  --bloqueado: #a8474c;
-  --bloqueado-bg: #fbeeee;
+  --bloqueado: #ba1a1a;
+  --bloqueado-bg: #ffdad6;
 
-  --accent: #6eabc7;
-  --accent-dark: #4a8aa8;
-  --accent-ink: #243e4b;
-  --detail: #ffe26d;
-  --detail-dark: #d9be4a;
-  --detail-soft: #fff7d4;
-  --ink: #243e4b;
+  /* primary de la tríada — reemplaza el sky blue */
+  --accent: #0e6b78;
+  --accent-dark: #084f59;
+  --accent-ink: #ffffff;
+  /* tertiary de la tríada (oliva/lima) — reemplaza el amarillo "solar" */
+  --detail: #e1ee7e;
+  --detail-dark: #5c6b00;
+  --detail-soft: #f3f8d6;
+  /* "ink" ya no es navy: teal bien oscuro, mismo hue que --accent */
+  --ink: #063c44;
 
-  --display: "Bricolage Grotesque", "Poppins", sans-serif;
+  --display: "Roboto Flex", "Roboto", sans-serif;
   --shadow: none;
-  --shadow-hard: 8px 8px 0 #eaf4f8;
+  --shadow-hard: 8px 8px 0 #e1eaea;
   --radius: 20px;
+
+  /* Escala real de corner radius M3 — ver el mockup */
+  --shape-xs: 4px;
+  --shape-sm: 8px;
+  --shape-md: 12px;
+  --shape-lg: 16px;
+  --shape-lg-inc: 20px;
+  --shape-xl: 28px;
+  --shape-xl-inc: 32px;
+  --shape-xxl: 48px;
+  --shape-full: 9999px;
 }
 
 * { box-sizing: border-box; }
@@ -51,7 +68,7 @@ code {
 
 body {
   margin: 0;
-  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
@@ -60,6 +77,7 @@ body {
 h1, h2, h3, h4, .stat-n, .price {
   font-family: var(--display);
   letter-spacing: -0.03em;
+  font-variation-settings: "opsz" 60, "wght" 800;
 }
 
 #app { display: none; }
@@ -98,14 +116,15 @@ input[type="number"]:focus, input[type="time"]:focus, input[type="email"]:focus,
 ::placeholder { color: #9bafb9; }
 
 /* ---------------- Botones ----------------
-   Se mantiene el "escalón" sólido: es la firma de la marca.
-   Sobre el celeste la tinta pasa a navy (contraste real). */
+   M3 Expressive: pill plano y sólido, sin el "escalón" de offset-shadow
+   que tenía la marca antes — ver el mockup (Clavis — Mockup Material 3
+   Expressive). El estado pressed se resuelve con scale, no con un
+   borde que se come de golpe. */
 button {
   appearance: button;
   background-color: var(--accent);
-  border: solid transparent;
-  border-radius: 14px;
-  border-width: 0 0 4px;
+  border: 0;
+  border-radius: var(--shape-full);
   box-sizing: border-box;
   color: var(--accent-ink);
   cursor: pointer;
@@ -116,44 +135,35 @@ button {
   margin: 0;
   outline: none;
   overflow: visible;
-  padding: 11px 20px;
+  padding: 12px 22px;
   position: relative;
   text-align: center;
-  transition: filter 0.15s ease, border-width 0.1s ease, padding-bottom 0.1s ease;
+  transition: filter 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
   font-family: inherit;
+  box-shadow: 0 1px 3px rgba(6, 60, 68, 0.18);
 }
 
-button::after {
-  background-color: var(--accent-dark);
-  border-radius: 14px;
-  bottom: -4px;
-  content: "";
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  z-index: -1;
+button:hover:not(:disabled) { filter: brightness(1.06); box-shadow: 0 3px 10px rgba(6, 60, 68, 0.24); }
+button:active:not(:disabled) { transform: scale(0.97); filter: brightness(0.98); }
+button:focus-visible { box-shadow: 0 0 0 3px rgba(6, 60, 68, 0.25); }
+
+/* Secondary: outlined, sin relleno — igual que el mockup. */
+button.secondary {
+  background-color: transparent;
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  box-shadow: none;
 }
-
-button:hover:not(:disabled) { filter: brightness(1.04); }
-button:active:not(:disabled) { border-width: 0 0 0; padding-bottom: 15px; }
-button:focus-visible { box-shadow: 0 0 0 3px rgba(36, 62, 75, 0.25); }
-
-/* Vuelve al secondary "de antes" (sin borde propio, solo el escalón
-   ::after más claro) — el usuario prefería esta pinta a la variante
-   con borde de 1px que trajo el paquete de diseño. */
-button.secondary { background-color: var(--panel); color: var(--text); }
-button.secondary::after { background-color: var(--border); }
+button.secondary:hover:not(:disabled) { background-color: var(--panel-2); filter: none; box-shadow: none; }
 
 /* El botón "WhatsApp" del próximo turno es un <a>, no un <button> —
    necesita la misma pinta que button.secondary a mano porque los
    estilos de arriba solo targetean el selector de tag button. */
 .actions a.secondary {
   appearance: button;
-  background-color: var(--panel);
-  border: solid transparent;
-  border-width: 0 0 4px;
-  border-radius: 14px;
+  background-color: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: var(--shape-full);
   box-sizing: border-box;
   color: var(--text);
   cursor: pointer;
@@ -161,33 +171,20 @@ button.secondary::after { background-color: var(--border); }
   font-size: 14px;
   font-weight: 700;
   line-height: 20px;
-  padding: 11px 20px;
+  padding: 12px 22px;
   position: relative;
   text-align: center;
   text-decoration: none;
-  transition: filter 0.15s ease;
+  transition: background-color 0.15s ease;
 }
-.actions a.secondary::after {
-  background-color: var(--border);
-  border-radius: 14px;
-  bottom: -4px;
-  content: "";
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  z-index: -1;
-}
-.actions a.secondary:hover { filter: brightness(1.04); }
-.actions a.secondary:active { border-width: 0 0 0; padding-bottom: 15px; }
+.actions a.secondary:hover { background-color: var(--panel-2); }
+.actions a.secondary:active { transform: scale(0.97); }
 
 button.dark { background-color: var(--ink); color: #fff; }
-button.dark::after { background-color: #16262e; }
 
 button.danger { background-color: var(--bloqueado); color: #fff; }
-button.danger::after { background-color: #7f3438; }
 
-button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
+button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; box-shadow: none; }
 
 /* Pestañas / filtros / slots: planos, sin escalón */
 .nav-item, .chip, .hueco-btn, .date-nav button, .slot-empty {
@@ -257,8 +254,8 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   border-radius: 50%;
   pointer-events: none;
 }
-.login-aside::before { top: -80px; right: -80px; width: 300px; height: 300px; background: rgba(110, 171, 199, 0.22); }
-.login-aside::after { bottom: -110px; left: -60px; width: 240px; height: 240px; background: rgba(255, 226, 109, 0.14); }
+.login-aside::before { top: -80px; right: -80px; width: 300px; height: 300px; background: rgba(180, 238, 245, 0.22); }
+.login-aside::after { bottom: -110px; left: -60px; width: 240px; height: 240px; background: rgba(225, 238, 126, 0.16); }
 
 .login-aside > * { position: relative; z-index: 1; }
 
@@ -320,9 +317,9 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   margin: 80px auto;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--shape-xl);
   padding: 30px;
-  box-shadow: 10px 10px 0 #eaf4f8;
+  box-shadow: 0 24px 48px -24px rgba(6, 60, 68, 0.3);
 }
 .setup-box h2 { margin: 0 0 6px; font-size: 24px; font-weight: 800; }
 .setup-box form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
@@ -332,74 +329,116 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 /* ------------------------------------------------------------ */
 .shell { display: flex; min-height: 100vh; align-items: stretch; background: var(--bg); }
 
+/* Navigation rail (M3 Expressive) — angosto, íconos + label chico,
+   indicador de selección tipo píldora. Reemplaza el sidebar de texto
+   ancho que tenía la marca antes — ver Agenda.dc.html del mockup. */
 .sidebar {
-  width: 232px;
+  width: 104px;
   flex-shrink: 0;
-  background: var(--panel);
+  background: var(--panel-2);
   border-right: 1px solid var(--border-2);
-  padding: 22px 16px;
+  padding: 22px 10px 18px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  align-items: center;
+  gap: 24px;
   position: sticky;
   top: 0;
   height: 100vh;
   overflow-y: auto;
 }
 
-.sidebar-brand { display: flex; align-items: center; padding: 0 6px; }
-.sidebar-brand img { height: 30px; width: auto; }
-
-.sidebar-comercio {
-  padding: 11px 12px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
-  background: var(--panel-2);
-  border: 1px solid var(--border-2);
-  border-radius: 14px;
-  margin-top: -6px;
+.sidebar-brand { display: flex; align-items: center; justify-content: center; }
+.sidebar-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--shape-md) var(--shape-md) var(--shape-md) var(--shape-xs);
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  font-family: var(--display);
 }
 
-.sidebar-nav { display: flex; flex-direction: column; gap: 3px; }
+.sidebar-nav { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
 
 .nav-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 11px;
+  gap: 5px;
   background: transparent;
   color: var(--text-muted);
-  padding: 11px 12px;
+  padding: 6px 4px 8px;
   font-weight: 600;
-  font-size: 14.5px;
-  text-align: left;
-  justify-content: flex-start;
+  font-size: 11px;
+  text-align: center;
   width: 100%;
+  border-radius: var(--shape-lg);
+  box-shadow: none;
 }
-.nav-item:hover { opacity: 1; background: var(--panel-2); color: var(--text); }
-.nav-item .navdot { width: 7px; height: 7px; border-radius: 50%; background: #d5e1e6; flex-shrink: 0; }
-.nav-item.active { background: var(--ink); color: #fff; }
-.nav-item.active:hover { background: var(--ink); color: #fff; }
-.nav-item.active .navdot { background: var(--detail); }
+.nav-item:hover { opacity: 1; background: var(--panel); color: var(--text); }
+.nav-item .nav-icon {
+  width: 56px;
+  height: 32px;
+  border-radius: var(--shape-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.nav-item.active .nav-icon { background: var(--accent); color: var(--accent-ink); }
+.nav-item.active { color: var(--text); font-weight: 700; }
+.nav-item.active:hover { background: transparent; }
 
-.sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
-
-.sidebar-plan {
+.sidebar-footer { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.sidebar-avatar {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: var(--shape-full);
   background: var(--detail-soft);
-  border: 1px solid #f3e3a6;
-  border-radius: 16px;
-  padding: 14px;
-}
-.sidebar-plan-label {
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: #8a7420;
+  color: var(--detail-dark);
+  font-size: 13px;
   font-weight: 700;
+  box-shadow: none;
 }
-.sidebar-plan-dias { font-family: var(--display); font-size: 16px; font-weight: 700; margin: 3px 0 10px; }
-.sidebar-plan button { width: 100%; padding: 9px 10px; font-size: 12.5px; background: var(--ink); color: #fff; }
-.sidebar-plan button::after { background: #16262e; }
+.sidebar-avatar:hover:not(:disabled) { filter: none; background: var(--detail); }
+
+/* Barra superior — antes vivía adentro del sidebar (nombre de comercio
+   + plan); en un rail angosto no entra, así que pasa a un app bar. */
+.app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--bg); }
+
+/* App bar flotante tipo cápsula (M3 real, verificado contra el kit de
+   Figma) — no una franja plana de punta a punta como antes. */
+.topbar-wrap { flex-shrink: 0; padding: 18px 28px 6px; }
+
+.topbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 26px;
+  border-radius: var(--shape-full);
+  background: var(--panel);
+  box-shadow: 0 6px 20px -10px rgba(6, 60, 68, 0.22);
+  flex-wrap: wrap;
+}
+.topbar-comercio { font-weight: 700; font-size: 15px; color: var(--text); }
+.topbar-plan { display: flex; align-items: center; gap: 12px; }
+.topbar-plan-dias {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--detail-dark);
+  background: var(--detail-soft);
+  padding: 7px 14px;
+  border-radius: var(--shape-full);
+}
+.topbar-plan button { padding: 8px 16px; font-size: 12.5px; }
 
 .content { flex: 1; min-width: 0; padding: 26px 32px 60px; }
 
@@ -408,29 +447,29 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 
 @media (max-width: 720px) {
   .shell { flex-direction: column; min-height: auto; }
+  /* En mobile el rail no cabe angosto contra el costado — pasa a una
+     barra horizontal arriba, misma lógica que un NavigationBar M3
+     (destinos primarios en ancho compacto) en vez del rail de escritorio. */
   .sidebar {
     width: 100%;
+    flex-direction: row;
+    align-items: center;
     border-right: none;
     border-bottom: 1px solid var(--border-2);
-    padding: 14px 16px;
-    gap: 12px;
+    padding: 10px 12px;
+    gap: 10px;
     position: static;
     height: auto;
     overflow-y: visible;
+    overflow-x: auto;
   }
-  /* El menú entero (logo, comercio, nav, plan, cerrar sesión) va
-     ANTES que el contenido en el DOM (mismo .shell de siempre) — en
-     desktop no importa, pero en un celular angosto eso significaba
-     una pantalla entera de "chrome" antes de ver un solo turno. Se
-     compacta todo lo que se pueda sin sacar información real. */
-  .sidebar-comercio { margin-top: 0; padding: 8px 10px; font-size: 12.5px; }
-  .sidebar-nav { flex-direction: row; flex-wrap: wrap; gap: 6px; }
-  .nav-item { width: auto; white-space: nowrap; flex-shrink: 0; padding: 7px 10px; font-size: 13px; }
-  .sidebar-footer { margin-top: 0; flex-direction: row; align-items: stretch; }
-  .sidebar-plan { flex: 1; padding: 8px 10px; }
-  .sidebar-plan-dias { font-size: 13px; margin: 1px 0 6px; }
-  .sidebar-plan button { padding: 6px 8px; }
-  .sidebar-footer > .secondary { flex-shrink: 0; align-self: center; padding: 8px 12px; font-size: 12.5px; }
+  .sidebar-nav { flex-direction: row; flex-wrap: nowrap; gap: 4px; width: auto; }
+  .nav-item { flex-direction: row; width: auto; white-space: nowrap; flex-shrink: 0; padding: 8px 10px; gap: 6px; }
+  .nav-item .nav-icon { width: 30px; height: 30px; }
+  .nav-item .nav-label { font-size: 12px; }
+  .sidebar-footer { margin-top: 0; margin-left: auto; }
+  .topbar-wrap { padding: 12px 14px 6px; }
+  .topbar { padding: 12px 18px; border-radius: var(--shape-xl); }
   .content { padding: 18px 16px 40px; }
   .content-header h2 { font-size: 25px; }
   .login-aside { padding: 90px 24px 28px; }
@@ -459,10 +498,13 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 
 .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
 
+/* M3 real (verificado contra el kit de Figma): el chip es un
+   rectángulo de radio chico, NO un pill completo — corrección sobre
+   la primera pasada, que asumía pill para todo. */
 .chip {
   border: 1px solid var(--border);
   background: var(--panel);
-  border-radius: 999px;
+  border-radius: var(--shape-sm);
   padding: 8px 15px;
   font-size: 13px;
   font-weight: 600;
@@ -471,7 +513,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   transition: all 0.15s ease;
 }
 .chip:hover { opacity: 1; border-color: var(--accent); color: var(--text); }
-.chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.chip.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 
 .agenda-list {
   display: flex;
@@ -541,7 +583,10 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 
 .mes-celda {
   position: relative;
-  width: 100%;
+  width: 34px;
+  aspect-ratio: 1;
+  max-width: 100%;
+  margin: 0 auto;
   min-width: 0;
   height: 34px;
   /* El button base (style.css, la firma "escalón" de la marca) trae
@@ -556,9 +601,11 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   align-items: center;
   justify-content: center;
   gap: 2px;
-  background: var(--panel);
-  border: 1px solid var(--border-2);
-  border-radius: 12px;
+  background: transparent;
+  /* Círculo real, como el date picker de M3 (verificado contra el
+     kit) — no la celda cuadrada de radio chico de antes. */
+  border: 1.5px solid transparent;
+  border-radius: var(--shape-full);
   color: var(--text);
   font-weight: 600;
   cursor: pointer;
@@ -566,9 +613,11 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 }
 .mes-celda:hover { border-color: var(--accent); opacity: 1; }
 .mes-celda.vacia { background: transparent; border-color: transparent; cursor: default; }
-.mes-celda.hoy { border-color: var(--detail-dark); border-width: 2px; }
-.mes-celda.activa { background: var(--ink); color: #fff; border-color: var(--ink); }
-.mes-celda.activa .mes-badge { background: var(--detail); color: var(--ink); }
+/* "Hoy": solo el aro, sin relleno — como el date picker de M3.
+   "Activa" (seleccionada): círculo relleno sólido. */
+.mes-celda.hoy { border-color: var(--accent); }
+.mes-celda.activa { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.mes-celda.activa .mes-badge { background: var(--accent-ink); color: var(--accent); }
 
 .mes-num { font-size: 14px; }
 .mes-badge {
@@ -638,9 +687,9 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   box-shadow: none;
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
-.turno-card:hover { transform: translateX(4px); box-shadow: 6px 6px 0 #edf3f5; }
-.turno-card[data-estado="confirmado"] { background: #fffbeb; border-left-color: var(--detail); }
-.turno-card[data-estado="atendido"] { background: var(--panel-2); border-left-color: var(--libre); }
+.turno-card:hover { transform: translateX(4px); box-shadow: 0 8px 20px -12px rgba(6, 60, 68, 0.28); }
+.turno-card[data-estado="confirmado"] { background: #eaf5f6; border-left-color: var(--accent); }
+.turno-card[data-estado="atendido"] { background: var(--panel-2); border-left-color: var(--detail-dark); }
 .turno-card[data-estado="ausente"] { background: #fdf3f3; border-left-color: var(--bloqueado); }
 .turno-card[data-estado="cancelado"] { background: #f0f3f5; border-left-color: #c9d5db; opacity: 0.75; }
 .turno-card[data-estado="bloqueado"] { background: #f0f3f5; border-left-color: #c9d5db; color: var(--text-muted); cursor: default; }
@@ -659,8 +708,8 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   margin-left: 8px;
   vertical-align: middle;
 }
-.status-badge.confirmado { background: #fff0b8; color: #7a6410; }
-.status-badge.atendido { background: var(--libre-bg); color: var(--libre); }
+.status-badge.confirmado { background: #d3ecee; color: var(--accent-dark); }
+.status-badge.atendido { background: var(--detail-soft); color: var(--detail-dark); }
 .status-badge.ausente { background: var(--bloqueado-bg); color: var(--bloqueado); }
 .status-badge.cancelado { background: #eef2f4; color: var(--text-muted); }
 
@@ -685,7 +734,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(36, 62, 75, 0.34);
+  background: rgba(6, 60, 68, 0.4);
   display: none;
   align-items: center;
   justify-content: center;
@@ -787,7 +836,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   color: var(--text-soft);
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  font-family: "Poppins", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: 700;
 }
 
@@ -872,9 +921,8 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   --switch_width: 2.6em;
   --switch_height: 1.3em;
   --track_off: #eef3f5;
-  --track_on: var(--detail);
+  --track_on: var(--accent);
   --thumb_color: #fff;
-  --outline_color: var(--ink);
   font-size: 18px;
   position: relative;
   display: inline-block;
@@ -883,39 +931,38 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
   flex-shrink: 0;
 }
 .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+/* Switch M3, plano — sin el relieve/escalón de la versión anterior. */
 .switch .slider {
   box-sizing: border-box;
-  border: 2px solid var(--outline_color);
+  border: 1.5px solid var(--outline_color, var(--border));
   position: absolute;
   inset: 0;
   background: var(--track_off);
   border-radius: var(--switch_height);
   cursor: pointer;
-  transition: 0.15s;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
-.switch input:checked + .slider { background: var(--track_on); }
+.switch input:checked + .slider { background: var(--track_on); border-color: var(--track_on); }
 .switch .slider::before {
   box-sizing: border-box;
   content: "";
   position: absolute;
-  height: var(--switch_height);
-  width: var(--switch_height);
-  left: -2px;
-  bottom: -2px;
-  border: 2px solid var(--outline_color);
+  height: calc(var(--switch_height) - 0.5em);
+  width: calc(var(--switch_height) - 0.5em);
+  left: 0.25em;
+  top: 50%;
+  transform: translateY(-50%);
   border-radius: 50%;
   background: var(--thumb_color);
-  transform: translateY(-0.2em);
-  box-shadow: 0 0.2em 0 var(--outline_color);
-  transition: 0.15s;
+  box-shadow: 0 1px 2px rgba(6, 60, 68, 0.35);
+  transition: transform 0.15s ease, width 0.15s ease, height 0.15s ease;
 }
-.switch input:hover + .slider::before { transform: translateY(-0.3em); box-shadow: 0 0.3em 0 var(--outline_color); }
-.switch input:checked + .slider::before { transform: translateX(calc(var(--switch_width) - var(--switch_height))) translateY(-0.2em); }
-.switch input:hover:checked + .slider::before {
-  transform: translateX(calc(var(--switch_width) - var(--switch_height))) translateY(-0.3em);
-  box-shadow: 0 0.3em 0 var(--outline_color);
+.switch input:checked + .slider::before {
+  height: calc(var(--switch_height) - 0.3em);
+  width: calc(var(--switch_height) - 0.3em);
+  transform: translateY(-50%) translateX(calc(var(--switch_width) - var(--switch_height) + 0.1em));
 }
-.switch input:focus-visible + .slider { box-shadow: 0 0 0 3px rgba(110, 171, 199, 0.35); }
+.switch input:focus-visible + .slider { box-shadow: 0 0 0 3px rgba(14, 107, 120, 0.35); }
 
 .dia-row .dia-nombre { font-weight: 600; width: 92px; flex-shrink: 0; }
 .dia-row .dia-horario { color: var(--text-muted); font-size: 13px; }
@@ -946,6 +993,65 @@ button:disabled { opacity: 0.55; cursor: not-allowed; filter: none; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* ------------------------------------------------------------ */
+/* Loading / progress (M3) — no hay página de referencia para esto
+   en el kit de Figma consultado, así que sigue el patrón estándar
+   documentado (indicador determinado/indeterminado, color primary). */
+/* ------------------------------------------------------------ */
+.m3-progress-linear {
+  position: relative;
+  height: 3px;
+  width: 100%;
+  background: var(--border-2);
+  overflow: hidden;
+  border-radius: var(--shape-full);
+}
+.m3-progress-linear::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: var(--accent);
+  border-radius: var(--shape-full);
+  animation: m3-indeterminate 1.3s ease-in-out infinite;
+}
+@keyframes m3-indeterminate {
+  0% { transform: translateX(-110%); }
+  55% { transform: translateX(160%); }
+  100% { transform: translateX(160%); }
+}
+
+/* Por debajo de la cápsula, no adentro — un aro de 3px pegado a un
+   borde full-radius se ve raro clipeado en las puntas. */
+.topbar-progress {
+  position: absolute;
+  left: 26px;
+  right: 26px;
+  bottom: -10px;
+  height: 3px;
+}
+
+.m3-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--border-2);
+  border-top-color: var(--accent);
+  animation: m3-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes m3-spin { to { transform: rotate(360deg); } }
+
+.m3-loading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  padding: 22px 4px;
+}
+.m3-loading-row.centered { justify-content: center; padding: 40px 4px; }
 
 /* ------------------------------------------------------------ */
 /* Ajustes de mobile que necesitan ganarle a reglas base de más   */

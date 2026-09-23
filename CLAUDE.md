@@ -318,7 +318,10 @@ Node aparte, no los levanta `python3 -m http.server` — ver `server/README.md`.
       (hCaptcha/Turnstile) queda pendiente, requiere que el dueño cree
       cuenta en ese servicio.
 - [x] Cobro real con Mercado Pago (`server/payments.js`): pago único de
-      $14.900 (plan "Comercio") vía Checkout Pro. El botón "Activar
+      $19.000 (plan "Comercio") vía Checkout Pro — precio subido desde
+      $14.900 el 2026-09-22 tras el análisis de costo de WhatsApp (ver
+      "Decisión: WhatsApp" más abajo), reflejado también en el landing
+      (`index.html`). El botón "Activar
       plan" del sidebar crea una preferencia y redirige; el webhook
       marca `peluqueros.plan = 'comercio'`. No es suscripción recurrente
       (eso sería la API de Preapproval, no implementada). El trial de 14
@@ -428,14 +431,30 @@ julio de 2025. Bajo el modelo nuevo:
   Argentina tiene tarifas en ARS desde abril 2026, pero el monto
   puntual está en un rate card (CSV/PDF) que pide login en Meta
   Business Manager — no lo pude confirmar sin esa cuenta.
-- Encontré referencias de blogs de terceros (no de Meta) a un cambio
-  para el 1 de octubre de 2026 donde se empezaría a cobrar también las
-  respuestas de servicio — la documentación oficial de Meta que
-  revisé (fecha de esta nota) **no confirma eso**, sigue diciendo que
-  las respuestas de servicio son gratis. Vale la pena chequearlo de
-  nuevo más cerca de esa fecha antes de asumir nada.
+- **Actualización (2026-09-22): confirmado en la doc oficial de Meta**
+  (antes esta nota decía "no confirmado") — desde el **1 de octubre de
+  2026** Meta empieza a cobrar por mensaje tanto los mensajes de
+  servicio (respuestas de texto libre dentro de la ventana de 24h,
+  las mande un humano o un bot) como los templates utility mandados
+  dentro de esa ventana. La ventana gratuita de 72h (Click-to-WhatsApp
+  / botón de Facebook o Instagram) sigue siendo gratis sin cambios. La
+  tarifa exacta para Argentina sigue sin poder confirmarse sin login
+  en Meta Business Manager (mismo rate card de siempre). Dando vueltas
+  por blogs de terceros aparece un dato de "1.000 mensajes de servicio
+  gratis por mes por número" — **ese dato NO está en la doc oficial de
+  Meta**, no darlo por cierto sin verificarlo directo en Meta Business
+  Manager antes de tomar decisiones de precio con eso.
+- Esto tira abajo el supuesto de que el bot conversacional (V2) es casi
+  gratis de operar: una conversación de bot pasa a costar el mensajero
+  (WhatsApp), no el LLM — la IA es ruido comparado con la mensajería.
+  Subió el precio del plan pago único actual ($14.900 → $19.000, ver
+  `server/payments.js` e `index.html`) para dar margen antes de que
+  exista el bot; **el precio de un futuro plan con bot todavía no está
+  decidido** y va a necesitar ser bastante más alto que el plan actual
+  sin bot — no tomar $19.000 como referencia para eso.
 
-Fuente: [developers.facebook.com/documentation/business-messaging/whatsapp/pricing](https://developers.facebook.com/documentation/business-messaging/whatsapp/pricing).
+Fuente: [developers.facebook.com/documentation/business-messaging/whatsapp/pricing](https://developers.facebook.com/documentation/business-messaging/whatsapp/pricing),
+[developers.facebook.com/documentation/business-messaging/whatsapp/pricing/non-template-messages](https://developers.facebook.com/documentation/business-messaging/whatsapp/pricing/non-template-messages).
 
 Cuando se construya, el bot debería reusar `generar_huecos_disponibles`
 para ofrecer horarios por chat (va a necesitar saber con qué profesional

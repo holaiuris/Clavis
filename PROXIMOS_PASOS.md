@@ -361,9 +361,23 @@ multi-sucursal, no lo vas a poder entregar.
   conjunto, en vez de una sola cuenta con múltiples locales) y ajustar
   el copy para que sea honesto con eso.
 
-**Qué necesito de vos:** una letra, o tu propia idea.
+**Decidido (2026-09-22) — opción A, con el criterio del análisis de
+estrategia de negocio (basado en el mapa competitivo):** el landing ya
+no promete "Sucursales ilimitadas" a precio fijo. El plan pasó a
+llamarse "Empresa", sin precio publicado ("Consultar"), con el copy
+ajustado a lo que existe hoy (equipo sin límite de profesionales,
+soporte prioritario) — el mismo criterio del documento de estrategia:
+"el plan Empresa se define cuando aparezca la primera cadena
+interesada". El CTA ("Hablar con ventas") ahora manda a
+`mailto:hola@clavis.ar` en vez de a `app.html` (antes llevaba a la
+pantalla de login, que no tiene sentido para "consultar"). El plan
+"Arranque" (gratis, 40 turnos/mes) no se tocó — está bien posicionado
+frente a la competencia (Gendu, ReservaSimple y Turnito también tienen
+plan gratis).
 
-- [ ] Decidido: _________________
+- [x] Decidido: opción A — copy honesto, sin precio fijo, hasta que
+      exista demanda real de multi-sucursal (queda la opción B —
+      construirlo de verdad — pendiente para cuando aparezca esa demanda)
 
 ---
 
@@ -451,16 +465,32 @@ conversacional (V2)" — resumen acá:
 desactualizado. Meta pasó de cobrar "por conversación" a **"por
 mensaje"** en julio 2025. Bajo el esquema nuevo, los mensajes que no
 son plantilla (o sea, casi toda la conversación real del bot: cliente
-escribe, bot responde) **son gratis sin tope** — mejor que el 1.000/mes
-gratis que se manejaba antes. Solo se cobran las plantillas
-(recordatorios proactivos tipo Utility, o Marketing), y el monto
-exacto en pesos argentinos está en un rate card que pide login en Meta
-Business Manager — no lo pude sacar sin esa cuenta.
+escribe, bot responde) eran gratis sin tope dentro de la ventana de
+servicio de 24h — pero **eso cambia el 1 de octubre de 2026**: Meta
+empieza a cobrar por mensaje también los mensajes de servicio (y las
+plantillas Utility dentro de esa ventana). Confirmado en la doc
+oficial de Meta, no es un rumor de blog. La ventana gratuita de 72h
+(Click-to-WhatsApp / botón de Facebook o Instagram) sigue gratis. El
+monto exacto en pesos argentinos sigue en un rate card que pide login
+en Meta Business Manager — no lo pude sacar sin esa cuenta. Ojo con un
+dato de "1.000 mensajes gratis por mes por número" que aparece en
+blogs de terceros: **no está en la doc oficial de Meta**, no darlo por
+cierto todavía.
+
+Consecuencia práctica: el bot conversacional deja de ser "casi gratis
+de operar" — el costo real de una conversación va a ser la mensajería
+de WhatsApp, no la IA. Por eso ya subí el precio del plan pago actual
+(sin bot) de $14.900 a $19.000 (`server/payments.js` e `index.html`),
+para no vender por debajo de costo mientras se define el precio de un
+futuro plan con bot — ese precio todavía no está decidido y previsiblemente
+tiene que ser bastante más alto que $19.000.
 
 **Lo que sigue de tu parte:**
 1. Cuando crees el Business Manager de Meta (paso 2 de abajo),
    descargá el rate card de ahí para tener el número exacto en ARS de
-   las plantillas Utility — es el único costo real que falta precisar.
+   los mensajes de servicio y las plantillas Utility — es el único
+   costo real que falta precisar, y define el precio de un futuro plan
+   con bot.
 2. Cuando quieras arrancar el bot de verdad: crear/verificar el
    Business Manager de Meta, dar de alta el número nuevo dedicado vía
    Embedded Signup, y elegir el proveedor de LLM (Gemini Flash o
@@ -470,7 +500,7 @@ Business Manager — no lo pude sacar sin esa cuenta.
    function calling, tabla de estado de conversación) — es un feature
    grande, no lo arranco sin que me lo pidas explícitamente.
 
-- [x] Precios de Meta investigados (falta el número exacto en ARS, necesita tu cuenta de Business Manager)
+- [x] Precios de Meta investigados y confirmados oficialmente (falta el número exacto en ARS, necesita tu cuenta de Business Manager)
 - [ ] Listo para planificar la construcción del bot
 
 ---
@@ -488,6 +518,6 @@ Business Manager — no lo pude sacar sin esa cuenta.
 | 7 | Captcha real (Turnstile) | ⬜ (necesita que crees la cuenta de Cloudflare) |
 | 8 | Términos y Privacidad | ✅ borrador publicado (falta tu email real) |
 | 9 | Renombrar comercio de prueba | ⬜ |
-| 10 | Decisión sucursales/Cadena | ⬜ |
+| 10 | Decisión sucursales/Cadena | ✅ opción A aplicada en el landing |
 | 11 | Renombrar `peluqueros` (multi-rubro) | ⬜ decisión pendiente |
 | 12 | Bot WhatsApp V2 — confirmar precios Meta | ✅ investigado (falta ARS exacto) |
