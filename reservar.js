@@ -99,7 +99,7 @@ async function initGestionTurno() {
     renderGestionTurno();
   } catch (err) {
     console.error(err);
-    app.innerHTML = `<h1>No se pudo cargar</h1><p class="error-msg">${escapeHtml(err.message || "Error inesperado")}</p>`;
+    app.innerHTML = `<h1>No se pudo cargar</h1><p class="error-msg" role="alert" aria-live="assertive">${escapeHtml(err.message || "Error inesperado")}</p>`;
   }
 }
 
@@ -129,7 +129,7 @@ function renderConfirmarCancelacionTurno() {
       <button type="button" class="secondary" id="btn-volver-gestion">Volver</button>
       <button type="button" class="danger" id="btn-confirmar-cancelacion">Sí, cancelar</button>
     </div>
-    <div class="error-msg" id="gestion-error"></div>
+    <div class="error-msg" role="alert" aria-live="assertive" id="gestion-error"></div>
   `;
   document.getElementById("btn-volver-gestion").addEventListener("click", renderGestionTurno);
   document.getElementById("btn-confirmar-cancelacion").addEventListener("click", async (e) => {
@@ -188,7 +188,7 @@ async function init() {
     render();
   } catch (err) {
     console.error(err);
-    app.innerHTML = `<h1>No se pudo cargar</h1><p class="error-msg">${escapeHtml(err.message || "Error inesperado")}</p>`;
+    app.innerHTML = `<h1>No se pudo cargar</h1><p class="error-msg" role="alert" aria-live="assertive">${escapeHtml(err.message || "Error inesperado")}</p>`;
   }
 }
 
@@ -267,7 +267,7 @@ function render() {
           <input type="text" id="espera-nombre" placeholder="Tu nombre" required />
           <input type="tel" id="espera-telefono" placeholder="Tu teléfono" required style="margin-top:6px;" />
           <button type="submit" class="secondary" id="espera-submit">Avisame si se libera algo</button>
-          <div class="error-msg" id="espera-error"></div>
+          <div class="error-msg" role="alert" aria-live="assertive" id="espera-error"></div>
         </form>
       </div>
     `;
@@ -289,11 +289,11 @@ function render() {
     <p class="hint">Elegí profesional, servicio y día.</p>
     <form id="filtros-form" onsubmit="return false">
       <div>
-        <label>Profesional</label>
+        <label for="sel-profesional">Profesional</label>
         <select id="sel-profesional">${profesionalesOptions}</select>
       </div>
       <div>
-        <label>Servicio</label>
+        <label for="sel-servicio">Servicio</label>
         <select id="sel-servicio">${serviciosOptions}</select>
       </div>
     </form>
@@ -309,7 +309,7 @@ function render() {
       <label>Horarios disponibles</label>
       ${huecosHtml}
     </div>
-    ${state.error ? `<p class="error-msg">${escapeHtml(state.error)}</p>` : ""}
+    ${state.error ? `<p class="error-msg" role="alert" aria-live="assertive">${escapeHtml(state.error)}</p>` : ""}
   `;
 
   document.querySelectorAll(".dia-pill").forEach((btn) => {
@@ -401,11 +401,11 @@ function renderConfirmacion() {
     <p class="hint">${escapeHtml(servicio ? servicio.nombre : "")} con ${escapeHtml(profesional ? profesional.nombre : "")}${precioTexto}<br/>${escapeHtml(fechaLarga)} · ${hhmm(h.hora_inicio)} - ${hhmm(h.hora_fin)}</p>
     <form id="confirmar-form">
       <div>
-        <label>Tu nombre</label>
+        <label for="cli-nombre">Tu nombre</label>
         <input type="text" id="cli-nombre" required />
       </div>
       <div>
-        <label>Tu teléfono</label>
+        <label for="cli-telefono">Tu teléfono</label>
         <input type="tel" id="cli-telefono" required placeholder="Para avisarte si el comercio cancela o mueve tu turno" />
       </div>
       <div class="hp-field" aria-hidden="true">
@@ -416,7 +416,7 @@ function renderConfirmacion() {
         <button type="button" class="secondary" id="cli-volver">Volver</button>
         <button type="submit">Confirmar turno</button>
       </div>
-      <div class="error-msg" id="confirmar-error"></div>
+      <div class="error-msg" role="alert" aria-live="assertive" id="confirmar-error"></div>
     </form>
   `;
 

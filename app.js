@@ -389,7 +389,7 @@ function renderLogin() {
               <a href="#" id="login-olvide" style="color:var(--bloqueado); font-weight:600;">Olvidé mi contraseña</a>
             </div>
             <button type="submit" id="login-submit" class="dark">Ingresar</button>
-            <div class="error-msg" id="login-error"></div>
+            <div class="error-msg" role="alert" aria-live="assertive" id="login-error"></div>
           </form>
           <div style="display:flex; align-items:center; gap:10px; margin:16px 0; color:var(--text-muted); font-size:12px;">
             <div style="flex:1; height:1px; background:var(--border);"></div>o<div style="flex:1; height:1px; background:var(--border);"></div>
@@ -433,7 +433,7 @@ function renderLogin() {
           <button type="button" class="secondary" id="olvide-cancel">Cancelar</button>
           <button type="submit">Mandar link</button>
         </div>
-        <div class="error-msg" id="olvide-error"></div>
+        <div class="error-msg" role="alert" aria-live="assertive" id="olvide-error"></div>
       </form>
     `);
     document.getElementById("olvide-cancel").addEventListener("click", closeModal);
@@ -488,7 +488,7 @@ function renderSetup() {
         <input type="text" id="setup-nombre" placeholder="Tu nombre" required />
         <input type="tel" id="setup-telefono" placeholder="Teléfono (opcional)" />
         <button type="submit" id="setup-submit">Crear mi agenda</button>
-        <div class="error-msg" id="setup-error"></div>
+        <div class="error-msg" role="alert" aria-live="assertive" id="setup-error"></div>
       </form>
       <p class="hint"><a href="#" id="setup-logout">Cerrar sesión</a></p>
     </div>
@@ -550,12 +550,12 @@ function renderApp() {
     <div class="shell">
       <aside class="sidebar">
         <div class="sidebar-brand"><div class="sidebar-mark">C</div></div>
-        <nav class="sidebar-nav">
+        <nav class="sidebar-nav" aria-label="Secciones principales">
           ${Object.keys(NAV_ICONS)
             .map(
               (v) => `
-            <button class="nav-item ${state.view === v ? "active" : ""}" data-view="${v}">
-              <span class="nav-icon">${NAV_ICONS[v]}</span>
+            <button type="button" class="nav-item ${state.view === v ? "active" : ""}" data-view="${v}" ${state.view === v ? 'aria-current="page"' : ""}>
+              <span class="nav-icon" aria-hidden="true">${NAV_ICONS[v]}</span>
               <span class="nav-label">${NAV_LABELS[v]}</span>
             </button>`
             )
@@ -581,7 +581,7 @@ function renderApp() {
           </header>
         </div>
         <main class="content">
-          ${state.error ? `<div class="error-msg">${escapeHtml(state.error)}</div>` : ""}
+          ${state.error ? `<div class="error-msg" role="alert" aria-live="assertive">${escapeHtml(state.error)}</div>` : ""}
           ${state.view === "agenda" ? renderAgendaView() : ""}
           ${state.view === "clientes" ? renderClientesView() : ""}
           ${state.view === "metricas" ? renderMetricasView() : ""}
@@ -627,7 +627,7 @@ function renderApp() {
         console.error(err);
         openModal(`
           <h3>No se pudo iniciar el pago</h3>
-          <p class="error-msg">${escapeHtml(err.message)}</p>
+          <p class="error-msg" role="alert" aria-live="assertive">${escapeHtml(err.message)}</p>
           <p class="hint">¿Está corriendo <code>server/payments.js</code>? Ver <code>server/README.md</code>.</p>
           <div class="actions"><button type="button" class="secondary" id="plan-close">Cerrar</button></div>
         `);
@@ -751,9 +751,9 @@ function renderMesGrid() {
 
   return `
     <div class="mes-nav">
-      <button type="button" id="mes-prev" aria-label="Mes anterior">‹</button>
+      <button type="button" data-mes-nav="prev" aria-label="Mes anterior">‹</button>
       <span>${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)}</span>
-      <button type="button" id="mes-next" aria-label="Mes siguiente">›</button>
+      <button type="button" data-mes-nav="next" aria-label="Mes siguiente">›</button>
     </div>
     <div class="mes-grid mes-grid-header">
       ${DIAS_ORDEN.map((d) => `<div class="mes-dia-nombre">${DIAS_LETRA[d]}</div>`).join("")}
@@ -966,8 +966,11 @@ function renderAgendaView() {
             <button type="button" id="fecha-prev" aria-label="Día anterior">‹</button>
             <span>${formatFechaLarga(state.fecha)}</span>
             <button type="button" id="fecha-next" aria-label="Día siguiente">›</button>
+            <button type="button" id="btn-fecha-calendario" class="date-nav-cal" aria-haspopup="dialog" aria-expanded="false" aria-label="Elegir fecha del calendario">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="3"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </button>
+            <div class="fecha-popover" id="fecha-popover" role="dialog" aria-label="Elegir fecha" hidden>${renderMesGrid()}</div>
           </div>
-          <input type="date" id="fecha-input" value="${state.fecha}" style="max-width:150px" />
           ${state.servicios.length ? `<select id="servicio-select">${serviciosOptions}</select>` : `<span class="hint">Agregá un servicio en Horarios</span>`}
         </div>
         <div class="agenda-print-header">
@@ -999,12 +1002,38 @@ function wireAgendaView() {
   // vale la pena distinguir cuándo hace falta y cuándo no.
   const reloadAgenda = () => Promise.all([loadTablero(), loadMesResumen()]);
 
-  const fechaInput = document.getElementById("fecha-input");
-  if (fechaInput) {
-    fechaInput.addEventListener("change", async (e) => {
-      state.fecha = e.target.value;
-      await withLoading(reloadAgenda);
-      renderApp();
+  // Calendario propio en vez del <input type="date"> nativo — el
+  // popup del sistema operativo no se puede restylear más allá del
+  // borde del campo, así que quedaba siempre "roto" contra el resto
+  // del diseño. Reusa el mismo mes-grid que el widget "Calendario"
+  // del costado (misma función, mismos data-attributes en vez de id,
+  // así los dos pueden convivir en la página sin pisarse).
+  const btnFechaCal = document.getElementById("btn-fecha-calendario");
+  const popover = document.getElementById("fecha-popover");
+  if (btnFechaCal && popover) {
+    const cerrarPopover = () => {
+      popover.hidden = true;
+      btnFechaCal.setAttribute("aria-expanded", "false");
+      document.removeEventListener("click", onClickFuera);
+      document.removeEventListener("keydown", onEscapePopover);
+    };
+    const onClickFuera = (e) => {
+      if (!popover.contains(e.target) && e.target !== btnFechaCal && !btnFechaCal.contains(e.target)) cerrarPopover();
+    };
+    const onEscapePopover = (e) => {
+      if (e.key === "Escape") {
+        cerrarPopover();
+        btnFechaCal.focus();
+      }
+    };
+    btnFechaCal.addEventListener("click", () => {
+      const abrir = popover.hidden;
+      popover.hidden = !abrir;
+      btnFechaCal.setAttribute("aria-expanded", String(abrir));
+      if (abrir) {
+        document.addEventListener("click", onClickFuera);
+        document.addEventListener("keydown", onEscapePopover);
+      }
     });
   }
 
@@ -1031,10 +1060,11 @@ function wireAgendaView() {
     await withLoading(reloadAgenda);
     renderApp();
   };
-  const btnMesPrev = document.getElementById("mes-prev");
-  if (btnMesPrev) btnMesPrev.addEventListener("click", () => shiftMes(-1));
-  const btnMesNext = document.getElementById("mes-next");
-  if (btnMesNext) btnMesNext.addEventListener("click", () => shiftMes(1));
+  // querySelectorAll, no getElementById: el mismo mes-grid puede estar
+  // presente dos veces a la vez (el widget del costado y el popover
+  // del date-nav) — un id duplicado solo hubiera enganchado al primero.
+  document.querySelectorAll('[data-mes-nav="prev"]').forEach((btn) => btn.addEventListener("click", () => shiftMes(-1)));
+  document.querySelectorAll('[data-mes-nav="next"]').forEach((btn) => btn.addEventListener("click", () => shiftMes(1)));
 
   document.querySelectorAll("[data-mes-dia]").forEach((celda) => {
     celda.addEventListener("click", async () => {
@@ -1131,19 +1161,60 @@ function openSlotChooser(clickedMin) {
 // ------------------------------------------------------------
 // Modal genérico
 // ------------------------------------------------------------
+// Guarda quién tenía el foco antes de abrir, para devolvérselo al
+// cerrar — sin esto, alguien navegando con teclado queda "perdido"
+// en el body después de un modal.
+let modalFocoPrevio = null;
+
+function focoAtrapado(e) {
+  if (e.key === "Escape") return closeModal();
+  if (e.key !== "Tab") return;
+  const modal = document.querySelector(".modal-backdrop .modal");
+  if (!modal) return;
+  const focosables = modal.querySelectorAll(
+    'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
+  );
+  if (!focosables.length) return;
+  const primero = focosables[0];
+  const ultimo = focosables[focosables.length - 1];
+  if (e.shiftKey && document.activeElement === primero) {
+    e.preventDefault();
+    ultimo.focus();
+  } else if (!e.shiftKey && document.activeElement === ultimo) {
+    e.preventDefault();
+    primero.focus();
+  }
+}
+
 function openModal(html, wide) {
   const backdrop = document.getElementById("modal-backdrop");
-  backdrop.innerHTML = `<div class="modal ${wide ? "modal-wide" : ""}">${html}</div>`;
+  modalFocoPrevio = document.activeElement;
+  backdrop.innerHTML = `<div class="modal ${wide ? "modal-wide" : ""}" role="dialog" aria-modal="true" tabindex="-1">${html}</div>`;
   backdrop.classList.add("visible");
   backdrop.onclick = (e) => {
     if (e.target === backdrop) closeModal();
   };
+
+  const modal = backdrop.querySelector(".modal");
+  // aria-labelledby apunta al primer título que traiga el HTML pasado
+  // — evita tener que cambiar la firma de openModal() en las ~40
+  // llamadas que ya existen en el resto del archivo.
+  const titulo = modal.querySelector("h2, h3");
+  if (titulo) {
+    if (!titulo.id) titulo.id = "modal-title-auto";
+    modal.setAttribute("aria-labelledby", titulo.id);
+  }
+  modal.focus();
+  document.addEventListener("keydown", focoAtrapado);
 }
 
 function closeModal() {
   const backdrop = document.getElementById("modal-backdrop");
   backdrop.classList.remove("visible");
   backdrop.innerHTML = "";
+  document.removeEventListener("keydown", focoAtrapado);
+  if (modalFocoPrevio && document.body.contains(modalFocoPrevio)) modalFocoPrevio.focus();
+  modalFocoPrevio = null;
 }
 
 async function openBookingModal(horaInicio, horaFin, target) {
@@ -1165,7 +1236,7 @@ async function openBookingModal(horaInicio, horaFin, target) {
         <button type="button" class="secondary" id="booking-cancel">Cancelar</button>
         <button type="submit">Guardar</button>
       </div>
-      <div class="error-msg" id="booking-error"></div>
+      <div class="error-msg" role="alert" aria-live="assertive" id="booking-error"></div>
     </form>
   `);
 
@@ -1218,7 +1289,7 @@ function renderTurnoDetailModal(turno) {
       <div class="actions">
         <button type="button" class="danger" id="turno-liberar">Liberar horario</button>
       </div>
-      <div class="error-msg" id="turno-detail-error"></div>
+      <div class="error-msg" role="alert" aria-live="assertive" id="turno-detail-error"></div>
     `);
     document.getElementById("turno-liberar").addEventListener("click", () =>
       mutateTurno(() => db.from("turnos").delete().eq("id", turno.id))
@@ -1265,7 +1336,7 @@ function renderTurnoDetailModal(turno) {
       <button type="button" class="danger" id="turno-liberar">Cancelar turno</button>
     </div>
     ${renderActividadTurno(turno)}
-    <div class="error-msg" id="turno-detail-error"></div>
+    <div class="error-msg" role="alert" aria-live="assertive" id="turno-detail-error"></div>
   `,
     true
   );
@@ -1354,12 +1425,12 @@ async function openReprogramarModal(turno) {
     <h3>Reprogramar turno</h3>
     <p class="hint">${escapeHtml(turno.cliente_nombre || "Turno")} — elegí la nueva fecha y horario.</p>
     <div>
-      <label>Nueva fecha</label>
+      <label for="reprogramar-fecha">Nueva fecha</label>
       <input type="date" id="reprogramar-fecha" value="${turno.fecha}" min="${todayISO()}" />
     </div>
-    <div id="reprogramar-huecos" style="margin-top:10px;"><p class="hint">Buscando horarios...</p></div>
+    <div id="reprogramar-huecos" style="margin-top:10px;"><p class="hint" role="status" aria-live="polite">Buscando horarios...</p></div>
     <div class="actions"><button type="button" class="secondary" id="reprogramar-cancel">Cancelar</button></div>
-    <div class="error-msg" id="reprogramar-error"></div>
+    <div class="error-msg" role="alert" aria-live="assertive" id="reprogramar-error"></div>
   `,
     true
   );
@@ -1368,7 +1439,7 @@ async function openReprogramarModal(turno) {
 
   const cargar = async (fecha) => {
     const cont = document.getElementById("reprogramar-huecos");
-    cont.innerHTML = `<p class="hint">Buscando horarios...</p>`;
+    cont.innerHTML = `<p class="hint" role="status" aria-live="polite">Buscando horarios...</p>`;
     try {
       const { data, error } = await db.rpc("generar_huecos_disponibles", {
         p_peluquero_id: state.peluquero.id,
@@ -1403,7 +1474,7 @@ async function openReprogramarModal(turno) {
       });
     } catch (err) {
       console.error(err);
-      cont.innerHTML = `<p class="error-msg">${escapeHtml(err.message || "No se pudo cargar")}</p>`;
+      cont.innerHTML = `<p class="error-msg" role="alert" aria-live="assertive">${escapeHtml(err.message || "No se pudo cargar")}</p>`;
     }
   };
 
@@ -1507,7 +1578,7 @@ async function openClienteDetailModal(clienteId) {
         <div class="turno-detail-contact">${cliente.telefono ? escapeHtml(cliente.telefono) + " · " : ""}cliente desde ${escapeHtml(new Date(cliente.creado_en).toLocaleDateString("es-AR", { year: "numeric", month: "long" }))}</div>
       </div>
     </div>
-    <div id="cliente-historial"><div class="m3-loading-row"><div class="m3-spinner"></div>Cargando historial...</div></div>
+    <div id="cliente-historial"><div class="m3-loading-row" role="status" aria-live="polite"><div class="m3-spinner" aria-hidden="true"></div>Cargando historial...</div></div>
   `);
 
   const { data: turnos, error } = await db
@@ -1521,7 +1592,7 @@ async function openClienteDetailModal(clienteId) {
   const cont = document.getElementById("cliente-historial");
   if (!cont) return; // se cerró el modal mientras cargaba
   if (error) {
-    cont.innerHTML = `<p class="error-msg">${escapeHtml(error.message)}</p>`;
+    cont.innerHTML = `<p class="error-msg" role="alert" aria-live="assertive">${escapeHtml(error.message)}</p>`;
     return;
   }
 
@@ -1679,7 +1750,7 @@ async function loadMetricas() {
 
 function renderMetricasView() {
   if (!state.metricas) {
-    return `<div class="content-header"><h2>Métricas</h2></div><div class="m3-loading-row centered"><div class="m3-spinner"></div>Cargando...</div>`;
+    return `<div class="content-header"><h2>Métricas</h2></div><div class="m3-loading-row centered" role="status" aria-live="polite"><div class="m3-spinner" aria-hidden="true"></div>Cargando...</div>`;
   }
   const m = state.metricas;
 
@@ -1949,7 +2020,7 @@ function renderHorariosView() {
                 </div>`
               : `<button type="button" id="btn-conectar-calendar" style="width:100%;">Conectar</button>`
           }
-          <div class="error-msg" id="calendar-error"></div>
+          <div class="error-msg" role="alert" aria-live="assertive" id="calendar-error"></div>
         </div>
       </div>
     </div>
@@ -1993,7 +2064,7 @@ function renderHorariosView() {
           : ""
       }
       <button type="button" id="btn-guardar-marca">Guardar</button>
-      <div class="error-msg" id="marca-error"></div>
+      <div class="error-msg" role="alert" aria-live="assertive" id="marca-error"></div>
 
       <div style="border-top:1px solid var(--border); margin-top:18px; padding-top:16px;">
         <p class="sub" style="margin-bottom:6px;">Tu link para compartir</p>
@@ -2027,7 +2098,7 @@ function renderHorariosView() {
       </div>
     </div>
 
-    <div class="error-msg" id="horarios-error"></div>
+    <div class="error-msg" role="alert" aria-live="assertive" id="horarios-error"></div>
   `;
 }
 
@@ -2047,7 +2118,7 @@ async function abrirModalQR(url) {
       <button type="button" class="secondary" id="qr-close">Cerrar</button>
       <button type="button" id="qr-descargar">Descargar PNG</button>
     </div>
-    <div class="error-msg" id="qr-error"></div>
+    <div class="error-msg" role="alert" aria-live="assertive" id="qr-error"></div>
   `);
   document.getElementById("qr-close").addEventListener("click", closeModal);
 
@@ -2337,7 +2408,7 @@ function wireHorariosView() {
             <button type="button" class="secondary" id="franja-cancel">Cancelar</button>
             <button type="submit">Guardar</button>
           </div>
-          <div class="error-msg" id="franja-error"></div>
+          <div class="error-msg" role="alert" aria-live="assertive" id="franja-error"></div>
         </form>
       `);
       document.getElementById("franja-cancel").addEventListener("click", closeModal);
@@ -2439,15 +2510,15 @@ function openBloquearFechasModal() {
     <p class="hint">Bloquea el horario de atención completo de cada día del rango (feriados, vacaciones, licencias).</p>
     <form id="bloquear-form">
       <div>
-        <label>Profesional</label>
+        <label for="bloquear-profesional">Profesional</label>
         <select id="bloquear-profesional">${profesionalesOptions}</select>
       </div>
       <div>
-        <label>Desde</label>
+        <label for="bloquear-desde">Desde</label>
         <input type="date" id="bloquear-desde" min="${todayISO()}" required />
       </div>
       <div>
-        <label>Hasta</label>
+        <label for="bloquear-hasta">Hasta</label>
         <input type="date" id="bloquear-hasta" min="${todayISO()}" required />
       </div>
       <input type="text" id="bloquear-motivo" placeholder="Motivo (ej: Feriado, Vacaciones)" />
@@ -2455,7 +2526,7 @@ function openBloquearFechasModal() {
         <button type="button" class="secondary" id="bloquear-cancel">Cancelar</button>
         <button type="submit">Bloquear</button>
       </div>
-      <div class="error-msg" id="bloquear-error"></div>
+      <div class="error-msg" role="alert" aria-live="assertive" id="bloquear-error"></div>
     </form>
   `);
 
@@ -2538,25 +2609,25 @@ function openBloqueoRecurrenteModal() {
     <p class="hint">Bloquea el mismo horario, todas las semanas, hasta la fecha que elijas.</p>
     <form id="bloqueo-recurrente-form">
       <div>
-        <label>Profesional</label>
+        <label for="bloqueo-recurrente-profesional">Profesional</label>
         <select id="bloqueo-recurrente-profesional">${profesionalesOptions}</select>
       </div>
       <div>
-        <label>Día de la semana</label>
+        <label for="bloqueo-recurrente-dia">Día de la semana</label>
         <select id="bloqueo-recurrente-dia">${diaOptions}</select>
       </div>
       <div style="display:flex; gap:8px;">
         <div style="flex:1;">
-          <label>Desde</label>
+          <label for="bloqueo-recurrente-inicio">Desde</label>
           <input type="time" id="bloqueo-recurrente-inicio" value="12:00" required />
         </div>
         <div style="flex:1;">
-          <label>Hasta</label>
+          <label for="bloqueo-recurrente-fin">Hasta</label>
           <input type="time" id="bloqueo-recurrente-fin" value="13:00" required />
         </div>
       </div>
       <div>
-        <label>Repetir hasta</label>
+        <label for="bloqueo-recurrente-hasta">Repetir hasta</label>
         <input type="date" id="bloqueo-recurrente-hasta" min="${todayISO()}" max="${maxHasta}" required />
       </div>
       <input type="text" id="bloqueo-recurrente-motivo" placeholder="Motivo (ej: Almuerzo, Clase)" />
@@ -2564,7 +2635,7 @@ function openBloqueoRecurrenteModal() {
         <button type="button" class="secondary" id="bloqueo-recurrente-cancel">Cancelar</button>
         <button type="submit">Bloquear</button>
       </div>
-      <div class="error-msg" id="bloqueo-recurrente-error"></div>
+      <div class="error-msg" role="alert" aria-live="assertive" id="bloqueo-recurrente-error"></div>
     </form>
   `);
 
